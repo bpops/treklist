@@ -73,17 +73,23 @@ class tabWidget(QWidget):
 
         # pull in series info
         parent.tl_df = pd.read_sql_query("SELECT * FROM series", parent.tl_conn)
-        abbs = parent.tl_df['abb'].tolist()
+        titles = parent.tl_df['title'].tolist()
+        abbs   = parent.tl_df['abb'].tolist()
+        years  = parent.tl_df['year'].tolist()
         n_series = len(abbs)
 
         # Initialize tab screen
         self.tabs = QTabWidget()
         self.tabList = []
-        for series in abbs:
+        for i, series in enumerate(abbs):
             self.tabList.append(QWidget())
-        for i in range(n_series):
             self.tabs.addTab(self.tabList[i], abbs[i].upper())
         
+        for i, tab in enumerate(self.tabList):
+            tab.layout = QVBoxLayout(self)
+            tab.layout.addWidget(QLabel(titles[i]))
+            tab.setLayout(tab.layout)
+
         # Create first tab
         #self.tab1.layout = QVBoxLayout(self)
         #self.pushButton1 = QPushButton("PyQt5 button")
