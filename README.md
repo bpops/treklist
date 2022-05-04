@@ -1,6 +1,6 @@
 ![TrekList](./imgs/logo.png)
 
-TrekList is an application to maintain an offline record of your Star Trek viewing experience. It is written in Python, uses SQLlite for its database, and ODMb to populate new episodes.
+TrekList is an application to maintain an offline record of your Star Trek viewing experience. It is written in Python, uses SQLlite for its database, and OMDb to populate new episodes.
 
 ## Development
 
