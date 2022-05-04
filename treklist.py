@@ -73,9 +73,10 @@ class tabWidget(QWidget):
 
         # pull in series info
         parent.tl_df = pd.read_sql_query("SELECT * FROM series", parent.tl_conn)
-        titles = parent.tl_df['title'].tolist()
-        abbs   = parent.tl_df['abb'].tolist()
-        years  = parent.tl_df['year'].tolist()
+        titles   = parent.tl_df['title'].tolist()
+        abbs     = parent.tl_df['abb'].tolist()
+        years    = parent.tl_df['year'].tolist()
+        imdb_ids = parent.tl_df['imdb_id'].tolist()
         n_series = len(abbs)
 
         # Initialize tab screen
@@ -86,8 +87,24 @@ class tabWidget(QWidget):
             self.tabs.addTab(self.tabList[i], abbs[i].upper())
         
         for i, tab in enumerate(self.tabList):
-            tab.layout = QVBoxLayout(self)
-            tab.layout.addWidget(QLabel(titles[i]))
+            tab.layout = QHBoxLayout(self)
+            series_info = QWidget()
+            series_info.layout = QVBoxLayout(tab)
+            img_lbl = QLabel("hi")
+            series_info.layout.addWidget(img_lbl)
+            series_info.layout.addWidget(QLabel(titles[i]+"\n"+years[i]))
+
+            # pull in poster
+            parent.tl_curs.execute(f"SELECT * FROM series WHERE imdb_id = '{imdb_ids[i]}'")
+            record    = parent.tl_curs.fetchall()
+            pix_map   = QPixmap()
+            pix_map.loadFromData(record[0][5])
+            img_lbl.setPixmap(pix_map)
+            img_lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+
+
+
+            #tab.layout.addWidget()
             tab.setLayout(tab.layout)
 
         # Create first tab
