@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout
 from PyQt6.QtWidgets import QGroupBox, QPushButton, QHBoxLayout, QLineEdit
 from PyQt6.QtWidgets import QCheckBox, QComboBox, QSlider, QFileDialog
 from PyQt6.QtWidgets import QSizePolicy, QMenuBar, QMainWindow, QMenu, QTextBrowser
-from PyQt6.QtWidgets import QTabWidget
+from PyQt6.QtWidgets import QTabWidget, QTableWidget
 from PyQt6.QtGui     import QPixmap, QIcon, QAction, QTextCursor
 from PyQt6.QtCore    import Qt, QCoreApplication#, pyqtSignal
 
@@ -38,7 +38,7 @@ os.chdir(wd)
 init_win_width   = 1200
 init_win_height  = 600
 
-class trekListApp(QMainWindow):
+class trekListApp(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -54,55 +54,88 @@ class trekListApp(QMainWindow):
         self.tl_conn = sqlite3.connect(tl_filename)
         self.tl_curs = self.tl_conn.cursor()
 
-        # generate tabs
-        self.tab_widget = tabWidget(self)
-        self.setCentralWidget(self.tab_widget)
+        # query databases
+        self.querySeriesDB()
 
+
+        # generate series Tab Widget
+        self.tab_widget = seriesTabWidget(self)
+        #self.setCentralWidget(self.tab_widget)
+
+        # set the main vertical box
+        self.mainVBox = QVBoxLayout()
+        self.mainVBox.setSpacing(0)
+        self.mainVBox.setContentsMargins(2, 2, 2, 10) # ltrb
+        self.statusBar = QLabel(f"{self.series['num']} series")
+        self.mainVBox.addWidget(self.tab_widget)
+        self.mainVBox.addWidget(self.statusBar, stretch=0, alignment=Qt.AlignmentFlag.AlignHCenter)
+        self.setLayout(self.mainVBox)        
 
     def centerWindow(self):
         qr = self.frameGeometry()
         cp = self.screen().availableGeometry().center()
         qr.moveCenter(cp)
 
+    def querySeriesDB(self):
+        """
+        Query the Series Database
 
-class tabWidget(QWidget):
+        This function will build a series dictionary with relevant information
+        """
+
+        # pull in series info
+        self.series = dict()
+        self.series["df"]       = pd.read_sql_query("SELECT * FROM series", self.tl_conn)
+        self.series["titles"]   = self.series["df"]['title'].tolist()
+        self.series["abbs"]     = self.series["df"]['abb'].tolist()
+        self.series["years"]    = self.series["df"]['year'].tolist()
+        self.series["imdb_ids"] = self.series["df"]['imdb_id'].tolist()
+        self.series["num"]      = len(self.series["abbs"])
+
+class seriesTabWidget(QWidget):
+    """
+    Series Tab Widget
+
+    This widget is the primary series tab widget
+    """
     
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
         self.layout = QVBoxLayout(self)
 
-        # pull in series info
-        parent.tl_df = pd.read_sql_query("SELECT * FROM series", parent.tl_conn)
-        titles   = parent.tl_df['title'].tolist()
-        abbs     = parent.tl_df['abb'].tolist()
-        years    = parent.tl_df['year'].tolist()
-        imdb_ids = parent.tl_df['imdb_id'].tolist()
-        n_series = len(abbs)
-
-        # Initialize tab screen
+        # initialize tab screen
         self.tabs = QTabWidget()
         self.tabList = []
-        for i, series in enumerate(abbs):
+        for i, abb in enumerate(parent.series["abbs"]):
             self.tabList.append(QWidget())
-            self.tabs.addTab(self.tabList[i], abbs[i].upper())
+            self.tabs.addTab(self.tabList[i], abb.upper())
         
+        # build all series tabs
         for i, tab in enumerate(self.tabList):
             tab.layout = QHBoxLayout(self)
             series_info = QWidget()
             series_info.layout = QVBoxLayout(tab)
-            img_lbl = QLabel("hi")
+            img_lbl = QLabel()
             series_info.layout.addWidget(img_lbl)
-            series_info.layout.addWidget(QLabel(titles[i]+"\n"+years[i]))
+            series_info.layout.addWidget(QLabel(parent.series["titles"][i]+"\n"+parent.series["years"][i]))
 
             # pull in poster
-            parent.tl_curs.execute(f"SELECT * FROM series WHERE imdb_id = '{imdb_ids[i]}'")
+            parent.tl_curs.execute(f"SELECT * FROM series WHERE imdb_id = '{parent.series['imdb_ids'][i]}'")
             record    = parent.tl_curs.fetchall()
             pix_map   = QPixmap()
             pix_map.loadFromData(record[0][5])
             img_lbl.setPixmap(pix_map)
             img_lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
-
+            # add table
+            #table_wdgt = QTableWidget()
+            #table_data = {'col1': ['1', '2', '3'],
+            #              'col2': ['4', '5', '6']}
+            #self.data = table_data
+            #table_wdgt.setData()
+            #table_wdgt.resizeColumnsToContents()
+            #table_wdgt.resizeRowsToContents()
+            #tab.layout.addWidget(table_wdgt)
 
             #tab.layout.addWidget()
             tab.setLayout(tab.layout)
