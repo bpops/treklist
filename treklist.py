@@ -14,9 +14,9 @@ from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout
 from PyQt6.QtWidgets import QGroupBox, QPushButton, QHBoxLayout, QLineEdit
 from PyQt6.QtWidgets import QCheckBox, QComboBox, QSlider, QFileDialog
 from PyQt6.QtWidgets import QSizePolicy, QMenuBar, QMainWindow, QMenu, QTextBrowser
-from PyQt6.QtWidgets import QTabWidget, QTableWidget
+from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem
 from PyQt6.QtGui     import QPixmap, QIcon, QAction, QTextCursor
-from PyQt6.QtCore    import Qt, QCoreApplication#, pyqtSignal
+from PyQt6.QtCore    import Qt, QCoreApplication
 
 import sys
 import omdb
@@ -39,7 +39,6 @@ init_win_width   = 1200
 init_win_height  = 600
 
 class trekListApp(QWidget):
-
     def __init__(self):
         super().__init__()
 
@@ -57,19 +56,15 @@ class trekListApp(QWidget):
         # query databases
         self.querySeriesDB()
 
-
-        # generate series Tab Widget
-        self.tab_widget = seriesTabWidget(self)
-        #self.setCentralWidget(self.tab_widget)
-
         # set the main vertical box
-        self.mainVBox = QVBoxLayout()
-        self.mainVBox.setSpacing(0)
-        self.mainVBox.setContentsMargins(2, 2, 2, 10) # ltrb
-        self.statusBar = QLabel(f"{self.series['num']} series")
-        self.mainVBox.addWidget(self.tab_widget)
-        self.mainVBox.addWidget(self.statusBar, stretch=0, alignment=Qt.AlignmentFlag.AlignHCenter)
-        self.setLayout(self.mainVBox)        
+        mainVBox = QVBoxLayout()
+        mainVBox.setSpacing(0)
+        mainVBox.setContentsMargins(2, 2, 2, 10) # ltrb
+        self.tab_widget = seriesTabWidget(self)
+        self.infoBar = QLabel(f"hello")#f"{self.series['num']} series")
+        mainVBox.addWidget(self.tab_widget)
+        mainVBox.addWidget(self.infoBar, stretch=0, alignment=Qt.AlignmentFlag.AlignHCenter)
+        self.setLayout(mainVBox)
 
     def centerWindow(self):
         qr = self.frameGeometry()
@@ -95,15 +90,13 @@ class trekListApp(QWidget):
 class seriesTabWidget(QWidget):
     """
     Series Tab Widget
-
-    This widget is the primary series tab widget
     """
     
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
-        self.layout = QVBoxLayout(self)
+        tab_layout = QHBoxLayout()
 
-        # initialize tab screen
+        #initialize tab screen
         self.tabs = QTabWidget()
         self.tabList = []
         for i, abb in enumerate(parent.series["abbs"]):
@@ -112,43 +105,58 @@ class seriesTabWidget(QWidget):
         
         # build all series tabs
         for i, tab in enumerate(self.tabList):
-            tab.layout = QHBoxLayout(self)
-            series_info = QWidget()
-            series_info.layout = QVBoxLayout(tab)
-            img_lbl = QLabel()
-            series_info.layout.addWidget(img_lbl)
-            series_info.layout.addWidget(QLabel(parent.series["titles"][i]+"\n"+parent.series["years"][i]))
+            this_tab_layout = QHBoxLayout(self.tabs)
 
-            # pull in poster
+            # series side bar
+            series_info = QWidget()
+            series_info_layout = QVBoxLayout()
+            series_info.setMaximumWidth(300)
+            img_lbl = QLabel()
             parent.tl_curs.execute(f"SELECT * FROM series WHERE imdb_id = '{parent.series['imdb_ids'][i]}'")
             record    = parent.tl_curs.fetchall()
             pix_map   = QPixmap()
             pix_map.loadFromData(record[0][5])
             img_lbl.setPixmap(pix_map)
             img_lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-
+            series_info_layout.addWidget(img_lbl, Qt.AlignmentFlag.AlignLeft)
+            series_title_lbl = QLabel(parent.series["titles"][i]+"\n"+parent.series["years"][i])
+            series_title_lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            series_info_layout.addWidget(series_title_lbl)
+            series_info.setLayout(series_info_layout)
+            this_tab_layout.addWidget(series_info)
+            
             # add table
-            #table_wdgt = QTableWidget()
-            #table_data = {'col1': ['1', '2', '3'],
-            #              'col2': ['4', '5', '6']}
-            #self.data = table_data
-            #table_wdgt.setData()
-            #table_wdgt.resizeColumnsToContents()
-            #table_wdgt.resizeRowsToContents()
-            #tab.layout.addWidget(table_wdgt)
+            data =       {'col1': ['1', '2', '3'],
+                          'col2': ['4', '5', '6']}
+            table_wdgt = seriesTableView(data, 3, 2)
+            this_tab_layout.addWidget(table_wdgt)
 
-            #tab.layout.addWidget()
-            tab.setLayout(tab.layout)
+            # assign layout
+            tab.setLayout(this_tab_layout)
 
-        # Create first tab
-        #self.tab1.layout = QVBoxLayout(self)
-        #self.pushButton1 = QPushButton("PyQt5 button")
-        #self.tab1.layout.addWidget(self.pushButton1)
-        #self.tab1.setLayout(self.tab1.layout)
-        
         # Add tabs to widget
-        self.layout.addWidget(self.tabs)
-        self.setLayout(self.layout)
+        tab_layout.addWidget(self.tabs)
+        self.setLayout(tab_layout)
+
+class seriesTableView(QTableWidget):
+    """
+    Series Table View
+    """
+    def __init__(self, data, *args):
+        QTableWidget.__init__(self, *args)
+        self.data = data
+        self.setData()
+        self.resizeColumnsToContents()
+        self.resizeRowsToContents()
+ 
+    def setData(self): 
+        horHeaders = []
+        for n, key in enumerate(sorted(self.data.keys())):
+            horHeaders.append(key)
+            for m, item in enumerate(self.data[key]):
+                newitem = QTableWidgetItem(item)
+                self.setItem(m, n, newitem)
+        self.setHorizontalHeaderLabels(horHeaders)
 
 def main():
     app = QApplication(sys.argv)
