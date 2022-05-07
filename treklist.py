@@ -35,7 +35,7 @@ except AttributeError:
 os.chdir(wd)
 
 # window size
-init_win_width   = 1200
+init_win_width   = 1300
 init_win_height  = 600
 
 class trekListApp(QWidget):
@@ -167,7 +167,7 @@ class seriesTableView(QTableWidget):
         self.horizontalHeader().moveSection(4,2)
         self.horizontalHeader().moveSection(4,3)
          
-        #self.setHorizontalHeaderLabels(['E', 'Plot', 'S', 'Title'])
+        self.setHorizontalHeaderLabels(['E', 'Plot', 'Released', 'S', 'Title'])
         #self.resizeColumnsToContents()   
         self.verticalHeader().setDefaultSectionSize(100)  
         self.setColumnWidth(self.horizontalHeader().logicalIndex(0), 30)  
