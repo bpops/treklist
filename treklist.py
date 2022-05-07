@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import QGroupBox, QPushButton, QHBoxLayout, QLineEdit
 from PyQt6.QtWidgets import QCheckBox, QComboBox, QSlider, QFileDialog
 from PyQt6.QtWidgets import QSizePolicy, QMenuBar, QMainWindow, QMenu, QTextBrowser
 from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem
-from PyQt6.QtGui     import QPixmap, QIcon, QAction, QTextCursor
+from PyQt6.QtGui     import QPixmap, QIcon, QAction, QTextCursor, QFont
 from PyQt6.QtCore    import Qt, QCoreApplication
 
 import sys
@@ -174,7 +174,11 @@ class seriesTableView(QTableWidget):
         self.setColumnWidth(self.horizontalHeader().logicalIndex(1), 30)
         self.setColumnWidth(self.horizontalHeader().logicalIndex(2), 130)
         self.setColumnWidth(self.horizontalHeader().logicalIndex(3), 100)
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(4), 480)
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(4), 400)
+        font = QFont()
+        font.setBold(True)
+        self.horizontalHeader().setFont(font)
+
  
     def setData(self): 
         horHeaders = []
