@@ -131,7 +131,7 @@ class seriesTabWidget(QWidget):
             # add table
             df = pd.read_sql_query(f"SELECT * FROM {parent.series['abbs'][i]}", parent.tl_conn)
             #df = df.drop(columns=['imdb_id','poster'])
-            df = df.filter(['season', 'episode', 'title', 'plot'], axis=1)
+            df = df.filter(['season', 'episode', 'title', 'plot', 'released'], axis=1)
             df = df.astype({"season": str, "episode": str}, errors='raise') 
             data = df.to_dict('list')
             n_cols = len(data.keys())
@@ -163,15 +163,18 @@ class seriesTableView(QTableWidget):
         #self.setDragDropMode()
 
         # set correct orders and labels
-        self.horizontalHeader().moveSection(2,0)
-        self.horizontalHeader().moveSection(3,2) 
-        self.setHorizontalHeaderLabels(['E', 'Plot', 'S', 'Title'])
+        self.horizontalHeader().moveSection(3,0)
+        self.horizontalHeader().moveSection(4,2)
+        self.horizontalHeader().moveSection(4,3)
+         
+        #self.setHorizontalHeaderLabels(['E', 'Plot', 'S', 'Title'])
         #self.resizeColumnsToContents()   
         self.verticalHeader().setDefaultSectionSize(100)  
         self.setColumnWidth(self.horizontalHeader().logicalIndex(0), 30)  
         self.setColumnWidth(self.horizontalHeader().logicalIndex(1), 30)
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(2), 200)
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(3), 500)
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(2), 130)
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(3), 100)
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(4), 480)
  
     def setData(self): 
         horHeaders = []
