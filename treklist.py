@@ -115,7 +115,7 @@ class seriesTabWidget(QWidget):
             parent.tl_curs.execute(f"SELECT * FROM series WHERE imdb_id = '{parent.series['imdb_ids'][i]}'")
             record    = parent.tl_curs.fetchall()
             pix_map   = QPixmap()
-            pix_map.loadFromData(record[0][5])
+            pix_map.loadFromData(record[0][6])
             #pix_map = pix_map.scaled(img_lbl.size().width(), img_lbl.size().height(),
             #    aspectRatioMode = Qt.AspectRatioMode.KeepAspectRatio,
             #    transformMode   = Qt.TransformationMode.SmoothTransformation)
@@ -129,14 +129,12 @@ class seriesTabWidget(QWidget):
             this_tab_layout.addWidget(series_info)
             
             # add table
-            #data =       {'col1': ['1', '2', '3'],
-            #              'col2': ['4', '5', '6']}
             df = pd.read_sql_query(f"SELECT * FROM {parent.series['abbs'][i]}", parent.tl_conn)
-            print(parent.series['abbs'][i])
+            df = df.drop(columns=['imdb_id','poster'])
+            df = df.astype({"season": str, "episode": str}, errors='raise') 
             data = df.to_dict('list')
             n_cols = len(data.keys())
             n_rows = len(df)
-            print(n_rows)
             table_wdgt = seriesTableView(data, n_rows, n_cols)
             this_tab_layout.addWidget(table_wdgt)
 
