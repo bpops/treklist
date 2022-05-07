@@ -61,7 +61,7 @@ class trekListApp(QWidget):
         mainVBox.setSpacing(0)
         mainVBox.setContentsMargins(2, 2, 2, 10) # ltrb
         self.tab_widget = seriesTabWidget(self)
-        self.infoBar = QLabel(f"hello")#f"{self.series['num']} series")
+        self.infoBar = QLabel(f"{self.series['num']} series")
         mainVBox.addWidget(self.tab_widget)
         mainVBox.addWidget(self.infoBar, stretch=0, alignment=Qt.AlignmentFlag.AlignHCenter)
         self.setLayout(mainVBox)
@@ -116,6 +116,9 @@ class seriesTabWidget(QWidget):
             record    = parent.tl_curs.fetchall()
             pix_map   = QPixmap()
             pix_map.loadFromData(record[0][5])
+            #pix_map = pix_map.scaled(img_lbl.size().width(), img_lbl.size().height(),
+            #    aspectRatioMode = Qt.AspectRatioMode.KeepAspectRatio,
+            #    transformMode   = Qt.TransformationMode.SmoothTransformation)
             img_lbl.setPixmap(pix_map)
             img_lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
             series_info_layout.addWidget(img_lbl, Qt.AlignmentFlag.AlignLeft)
@@ -126,9 +129,15 @@ class seriesTabWidget(QWidget):
             this_tab_layout.addWidget(series_info)
             
             # add table
-            data =       {'col1': ['1', '2', '3'],
-                          'col2': ['4', '5', '6']}
-            table_wdgt = seriesTableView(data, 3, 2)
+            #data =       {'col1': ['1', '2', '3'],
+            #              'col2': ['4', '5', '6']}
+            df = pd.read_sql_query(f"SELECT * FROM {parent.series['abbs'][i]}", parent.tl_conn)
+            print(parent.series['abbs'][i])
+            data = df.to_dict('list')
+            n_cols = len(data.keys())
+            n_rows = len(df)
+            print(n_rows)
+            table_wdgt = seriesTableView(data, n_rows, n_cols)
             this_tab_layout.addWidget(table_wdgt)
 
             # assign layout
