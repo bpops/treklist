@@ -143,15 +143,22 @@ class seriesTabWidget(QWidget):
             this_tab_layout.addWidget(series_info)
             
             # add table
-            df = pd.read_sql_query(f"SELECT * FROM {parent.series['abbs'][i]}", parent.tl_conn)
+            df_orig = pd.read_sql_query(f"SELECT * FROM {parent.series['abbs'][i]}", parent.tl_conn)
             #df = df.drop(columns=['imdb_id','poster'])
-            df = df.filter(['season', 'episode', 'title', 'plot', 'released', 'runtime'], axis=1)
+            df = df_orig.filter(['season', 'episode', 'title', 'plot', 'released', 'runtime'], axis=1)
             df = df.astype({"season": str, "episode": str}, errors='raise') 
             data = df.to_dict('list')
             n_cols = len(data.keys())
             n_rows = len(df)
-            table_wdgt = seriesTableView(data, n_rows, n_cols)
+            table_wdgt = seriesTableView(data, parent.series["abbs"][i], parent, n_rows, n_cols)
             this_tab_layout.addWidget(table_wdgt)
+
+            # add screenshots
+            for j, row in df_orig.iterrows():
+                parent.tl_curs.execute(f"SELECT poster FROM {parent.series['abbs'][i]} WHERE imdb_id = '{row['imdb_id']}'")
+                record    = parent.tl_curs.fetchall()
+                pix_map   = QPixmap()
+                #pix_map.loadFromData(record[0][6])
 
             # assign layout
             tab.setLayout(this_tab_layout)
@@ -171,9 +178,11 @@ class seriesTableView(QTableWidget):
     """
     Series Table View
     """
-    def __init__(self, data, *args):
+    def __init__(self, data, series, parent, *args):
         QTableWidget.__init__(self, *args)
+        self.series = series
         self.data = data
+        self.parent = parent
         #self.data = {k : data[k] for k in key_order}
         self.setData()
         #self.resizeColumnsToContents()
@@ -205,9 +214,15 @@ class seriesTableView(QTableWidget):
         font = QFont()
         font.setBold(True)
         self.horizontalHeader().setFont(font)
- 
+        
         # make nothing editable
         #self.setEditTriggers(QAbstractItemView.)
+
+        # loop through and set all posters
+        for row in range(len(self.data['season'])):
+            col = 6
+            self.setImage(row, col)
+            #setImage(row, col, )
 
     def setData(self): 
         horHeaders = []
@@ -218,24 +233,39 @@ class seriesTableView(QTableWidget):
                 self.setItem(m, n, newitem)
         self.setHorizontalHeaderLabels(horHeaders)
 
-    def setImage(self, row, col, imageData):
+    def setImage(self, row, col):
         """
         Sets a cell to the specified image data
         """
-        pass
+        #pass
+        season = self.data['season'][row]
+        episode = self.data['episode'][row]
+        self.parent.tl_curs.execute(f"SELECT * from {self.series} WHERE season == '{season}' AND episode == '{episode}'")
+        record = self.parent.tl_curs.fetchall()
+        if len(record) > 0:
+            imgData = record[0][11]
+            ##print(imgData)#
+            #exit
+            imgwid = ImageWidget(imgData, self)
+            self.setCellWidget(row, col, imgwid)
+
+        #self.cursor.execute("curs.execute("SELECT * FROM self.series WHERE imdb_id = 'tt0708469'")")
         #image = 
         #self.setCellWidget(row, col, image)
 
-class ImageWidget(QWidget):
+class ImageWidget(QLabel):
+    """
+    Image widget for SQL BLOB images
+    """
 
     def __init__(self, imageData, parent):
         super(ImageWidget, self).__init__(parent)
         self.picture = QPixmap()
         self.picture.loadFromData(imageData)
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.drawPixmap(0, 0, self.picture)
+        self.picture = self.picture.scaled(200, 200,
+            aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio,
+            transformMode=Qt.TransformationMode.SmoothTransformation)
+        self.setPixmap(self.picture)
 
 def main():
     app = QApplication(sys.argv)
