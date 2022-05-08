@@ -1,6 +1,6 @@
 ![TrekList](./imgs/logo.png)
 
-TrekList is an application that expands on what I had already made: a Star Trek episode tracker written in Excel. But this is a standalone, automated, self-updating version with added features and capabilities. I am writing this for ME. But you can use it, too. LLAP :vulcan_salute:
+TrekList is an application that expands on what I had already made for my Trekkie self: a Star Trek episode tracker written in Excel. But this is a standalone, automated, self-updating version with lots of (planned) added features and capabilities. I am writing this for ME. But you can use it, too, if you like. LLAP :vulcan_salute:
 
 ![TrekList Screenshot](./imgs/screenshot.png)
 
