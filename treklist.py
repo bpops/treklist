@@ -72,7 +72,7 @@ class trekListApp(QWidget):
         leftover_minutes = self.n_mins % 1440
         hours = math.floor(leftover_minutes / 60)
         mins = self.n_mins - (days*1440) - (hours*60)
-        self.infoBar = QLabel(f"{self.series['num']} series, {self.n_eps} episodes, {days} days {hours} hours {mins} mins")
+        self.infoBar = QLabel(f"{self.series['num']} series, {self.n_eps} episodes, {days} days {hours} hours {mins} mins runtime")
         
         # add widgets to layout
         mainVBox.addWidget(self.tab_widget)
@@ -184,19 +184,22 @@ class seriesTableView(QTableWidget):
         #self.setDragDropMode()
 
         # set correct orders and labels
+        self.setColumnCount(self.horizontalHeader().count() + 1)
+        self.setHorizontalHeaderLabels(['E', 'Plot', 'Released', 'Runtime', 'S', 'Title', 'Screen'])
         self.horizontalHeader().moveSection(4,0)
         self.horizontalHeader().moveSection(5,2)
         self.horizontalHeader().moveSection(4,3)
-         
-        self.setHorizontalHeaderLabels(['E', 'Plot', 'Released', 'Runtime', 'S', 'Title'])
+        self.horizontalHeader().moveSection(6,3)
         #self.resizeColumnsToContents()   
-        self.verticalHeader().setDefaultSectionSize(100)  
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(0), 30)  
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(1), 30)
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(2), 130)
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(3), 90)
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(4), 400)
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(5), 70)
+        #self.horizontalHeader().moveSection(7, )
+        self.verticalHeader().setDefaultSectionSize(160)  
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(0), 30)  # season
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(1), 30)  # episode
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(2), 130) # title
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(3), 200) # screenshot
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(4), 90)  # released
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(5), 300) # plot
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(6), 70)  # runtime
         
         # make headers bold
         font = QFont()
