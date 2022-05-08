@@ -11,12 +11,12 @@
 
 # pyqt6 requirements
 from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout
-from PyQt6.QtWidgets import QGroupBox, QPushButton, QHBoxLayout, QLineEdit
-from PyQt6.QtWidgets import QCheckBox, QComboBox, QSlider, QFileDialog
-from PyQt6.QtWidgets import QSizePolicy, QMenuBar, QMainWindow, QMenu, QTextBrowser
-from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QAbstractItemView
-from PyQt6.QtGui     import QPixmap, QIcon, QAction, QTextCursor, QFont, QPainter
-from PyQt6.QtCore    import Qt, QCoreApplication
+from PyQt6.QtWidgets import QHBoxLayout, QLineEdit
+#from PyQt6.QtWidgets import QCheckBox, QComboBox, QSlider, QFileDialog
+#from PyQt6.QtWidgets import QSizePolicy, QMenuBar, QMainWindow, QMenu, QTextBrowser
+from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem
+from PyQt6.QtGui     import QPixmap, QFont
+from PyQt6.QtCore    import Qt
 
 import sys
 import omdb
@@ -204,10 +204,10 @@ class seriesTableView(QTableWidget):
         self.verticalHeader().setDefaultSectionSize(160)  
         self.setColumnWidth(self.horizontalHeader().logicalIndex(0), 30)  # season
         self.setColumnWidth(self.horizontalHeader().logicalIndex(1), 30)  # episode
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(2), 130) # title
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(3), 200) # screenshot
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(2), 140) # title
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(3), 250) # screenshot
         self.setColumnWidth(self.horizontalHeader().logicalIndex(4), 90)  # released
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(5), 300) # plot
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(5), 350) # plot
         self.setColumnWidth(self.horizontalHeader().logicalIndex(6), 70)  # runtime
         
         # make headers bold
@@ -262,7 +262,7 @@ class ImageWidget(QLabel):
         super(ImageWidget, self).__init__(parent)
         self.picture = QPixmap()
         self.picture.loadFromData(imageData)
-        self.picture = self.picture.scaled(200, 200,
+        self.picture = self.picture.scaled(250, 250,
             aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio,
             transformMode=Qt.TransformationMode.SmoothTransformation)
         self.setPixmap(self.picture)
