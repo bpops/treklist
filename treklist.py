@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout
 from PyQt6.QtWidgets import QGroupBox, QPushButton, QHBoxLayout, QLineEdit
 from PyQt6.QtWidgets import QCheckBox, QComboBox, QSlider, QFileDialog
 from PyQt6.QtWidgets import QSizePolicy, QMenuBar, QMainWindow, QMenu, QTextBrowser
-from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem
+from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QAbstractItemView
 from PyQt6.QtGui     import QPixmap, QIcon, QAction, QTextCursor, QFont
 from PyQt6.QtCore    import Qt, QCoreApplication
 
@@ -26,6 +26,7 @@ import os
 import requests
 import io
 import PIL.Image as Image
+import math
 
 # dev vs bundled paths
 try:
@@ -35,7 +36,7 @@ except AttributeError:
 os.chdir(wd)
 
 # window size
-init_win_width   = 1300
+init_win_width   = 1400
 init_win_height  = 600
 
 class trekListApp(QWidget):
@@ -56,12 +57,24 @@ class trekListApp(QWidget):
         # query databases
         self.querySeriesDB()
 
+        # initialize info for info label
+        self.n_eps  = 0
+        self.n_mins = 0
+
         # set the main vertical box
         mainVBox = QVBoxLayout()
         mainVBox.setSpacing(0)
         mainVBox.setContentsMargins(2, 2, 2, 10) # ltrb
         self.tab_widget = seriesTabWidget(self)
-        self.infoBar = QLabel(f"{self.series['num']} series")
+        
+        # set the info bar
+        days = math.floor(self.n_mins / 1440)
+        leftover_minutes = self.n_mins % 1440
+        hours = math.floor(leftover_minutes / 60)
+        mins = self.n_mins - (days*1440) - (hours*60)
+        self.infoBar = QLabel(f"{self.series['num']} series, {self.n_eps} episodes, {days} days {hours} hours {mins} mins")
+        
+        # add widgets to layout
         mainVBox.addWidget(self.tab_widget)
         mainVBox.addWidget(self.infoBar, stretch=0, alignment=Qt.AlignmentFlag.AlignHCenter)
         self.setLayout(mainVBox)
@@ -110,6 +123,7 @@ class seriesTabWidget(QWidget):
             # series side bar
             series_info = QWidget()
             series_info_layout = QVBoxLayout()
+            series_info_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
             series_info.setMaximumWidth(300)
             img_lbl = QLabel()
             parent.tl_curs.execute(f"SELECT * FROM series WHERE imdb_id = '{parent.series['imdb_ids'][i]}'")
@@ -121,7 +135,7 @@ class seriesTabWidget(QWidget):
             #    transformMode   = Qt.TransformationMode.SmoothTransformation)
             img_lbl.setPixmap(pix_map)
             img_lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-            series_info_layout.addWidget(img_lbl, Qt.AlignmentFlag.AlignLeft)
+            series_info_layout.addWidget(img_lbl)#, Qt.AlignmentFlag.AlignLeft)
             series_title_lbl = QLabel(parent.series["titles"][i]+"\n"+parent.series["years"][i])
             series_title_lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
             series_info_layout.addWidget(series_title_lbl)
@@ -141,6 +155,13 @@ class seriesTabWidget(QWidget):
 
             # assign layout
             tab.setLayout(this_tab_layout)
+
+            # calculate num episodes, minutes
+            parent.n_eps += len(df)
+            for runtime in data['runtime']:
+                if runtime != "N/A":
+                    this_ep_rt = int(''.join(list(filter(str.isdigit, runtime))))
+                    parent.n_mins += this_ep_rt
 
         # Add tabs to widget
         tab_layout.addWidget(self.tabs)
@@ -173,15 +194,18 @@ class seriesTableView(QTableWidget):
         self.setColumnWidth(self.horizontalHeader().logicalIndex(0), 30)  
         self.setColumnWidth(self.horizontalHeader().logicalIndex(1), 30)
         self.setColumnWidth(self.horizontalHeader().logicalIndex(2), 130)
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(3), 100)
+        self.setColumnWidth(self.horizontalHeader().logicalIndex(3), 90)
         self.setColumnWidth(self.horizontalHeader().logicalIndex(4), 400)
         self.setColumnWidth(self.horizontalHeader().logicalIndex(5), 70)
         
+        # make headers bold
         font = QFont()
         font.setBold(True)
         self.horizontalHeader().setFont(font)
-
  
+        # make nothing editable
+        #self.setEditTriggers(QAbstractItemView.)
+
     def setData(self): 
         horHeaders = []
         for n, key in enumerate(sorted(self.data.keys())):
