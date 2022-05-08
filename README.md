@@ -15,3 +15,5 @@ To populate the database, execute the `build_db.ipynb` notebook. It will request
 TrekList is in *no way* affiliated with Star Trek, CBS, or Paramount.
 
 All textual content is courtesy of [omdb](https://www.omdbapi.com), which is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
+
+[Vulcan salute icon](https://iconduck.com/sets/noto-emoji-by-google) is licensed under the [Apache license 2.0](https://www.apache.org/licenses/LICENSE-2.0) by Google.
