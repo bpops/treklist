@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import QGroupBox, QPushButton, QHBoxLayout, QLineEdit
 from PyQt6.QtWidgets import QCheckBox, QComboBox, QSlider, QFileDialog
 from PyQt6.QtWidgets import QSizePolicy, QMenuBar, QMainWindow, QMenu, QTextBrowser
 from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QAbstractItemView
-from PyQt6.QtGui     import QPixmap, QIcon, QAction, QTextCursor, QFont
+from PyQt6.QtGui     import QPixmap, QIcon, QAction, QTextCursor, QFont, QPainter
 from PyQt6.QtCore    import Qt, QCoreApplication
 
 import sys
@@ -37,7 +37,7 @@ os.chdir(wd)
 
 # window size
 init_win_width   = 1400
-init_win_height  = 600
+init_win_height  = 800
 
 class trekListApp(QWidget):
     def __init__(self):
@@ -217,6 +217,25 @@ class seriesTableView(QTableWidget):
                 newitem = QTableWidgetItem(item)
                 self.setItem(m, n, newitem)
         self.setHorizontalHeaderLabels(horHeaders)
+
+    def setImage(self, row, col, imageData):
+        """
+        Sets a cell to the specified image data
+        """
+        pass
+        #image = 
+        #self.setCellWidget(row, col, image)
+
+class ImageWidget(QWidget):
+
+    def __init__(self, imageData, parent):
+        super(ImageWidget, self).__init__(parent)
+        self.picture = QPixmap()
+        self.picture.loadFromData(imageData)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.drawPixmap(0, 0, self.picture)
 
 def main():
     app = QApplication(sys.argv)

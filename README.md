@@ -8,7 +8,7 @@ TrekList is an application that expands on what I had already made for my Trekki
 
 You will need to [generate an OMDb API key](https://www.omdbapi.com/apikey.aspx). Place the key in a text file called `api_key` in the repo's base directory. TrekList is built with python 3.9 and sqlite.
 
-To build the database, execute the `build_db.ipynb` notebook. It will request all information from OMDb, then pull all posters and insert them into the primary sql database.
+To populate the database, execute the `build_db.ipynb` notebook. It will request all information from OMDb, then pull all posters and insert them into the primary sql database.
 
 ## Legal
 
