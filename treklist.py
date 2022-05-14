@@ -41,7 +41,7 @@ series_tbl_row_hgt   = 150
 movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'runtime')
 movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Runtime')
 movies_tbl_widths    = (180,      200,        100,       350,     80)
-movie_tbl_row_hgt    = 300
+movies_tbl_row_hgt   = 300
 
 def getMain(widget):
     """
@@ -225,7 +225,19 @@ class seriesTabsWidget(QWidget):
             series_tbl = seriesTableWidget(tab.abb)
             tab_layout.addWidget(series_tbl, stretch=1)
             series_tbl.populate()
-            
+
+        # initialize movies tab
+        movies_tab = QWidget()
+        self.tab_list.append(movies_tab)
+        self.tabs.addTab(movies_tab, "MOV")
+        tab_layout = QHBoxLayout()
+        movies_tab.setLayout(tab_layout)
+
+        # build movies tab
+        movies_tbl = moviesTableWidget()
+        tab_layout.addWidget(movies_tbl)
+        movies_tbl.populate()
+
 class seriesSideBarWidget(QWidget):
     """
     Series Side Bar Widget
@@ -244,7 +256,6 @@ class seriesSideBarWidget(QWidget):
 
     def populate(self):
 
-        
         # add series title
         df = getMain(self).dfs["series"]
         df = df[df['imdb_id'] == self.imdb_id]
@@ -306,6 +317,45 @@ class seriesTableWidget(QTableWidget):
         img_wdgt = resizingImageWidget()
         self.setCellWidget(row, col, img_wdgt)
         img_wdgt.setPoster(self.abb, self.df["imdb_id"][row])
+
+class moviesTableWidget(QTableWidget):
+    """
+    Movies Table Widget
+    """
+    def __init__(self):
+        super(QTableWidget, self).__init__()
+        self.setAlternatingRowColors(True)
+        self.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+
+    def populate(self):
+
+        # get dataframe
+        self.df      = getMain(self).dfs["mov"]
+        self.df_hdrs = self.df.keys().values
+        
+        # set up columns/headers
+        self.setColumnCount(len(movies_tbl_hdrs))
+        self.setHorizontalHeaderLabels(movies_tbl_hdr_names)
+        for c, hdr_width in enumerate(movies_tbl_widths):
+            self.setColumnWidth(c, hdr_width)
+        font = QFont()
+        font.setBold(True)
+        self.horizontalHeader().setFont(font)
+        
+        # append each row from series dataframes
+        for r, row in enumerate(self.df.iterrows()):
+            self.insertRow(r)
+            for c, hdr in enumerate(movies_tbl_hdrs):
+                if hdr != "poster":
+                    self.setItem(r, c, QTableWidgetItem(f"{self.df[hdr][r]}"))
+                else:
+                    self.setImage(r, c)
+        self.verticalHeader().setDefaultSectionSize(movies_tbl_row_hgt)
+
+    def setImage(self, row, col):
+        img_wdgt = resizingImageWidget()
+        self.setCellWidget(row, col, img_wdgt)
+        img_wdgt.setPoster("mov", self.df["imdb_id"][row])
 
 class resizingImageWidget(QLabel):
     """
