@@ -11,20 +11,15 @@
 
 # pyqt6 requirements
 from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout
-from PyQt6.QtWidgets import QHBoxLayout, QLineEdit
-#from PyQt6.QtWidgets import QCheckBox, QComboBox, QSlider, QFileDialog
-#from PyQt6.QtWidgets import QSizePolicy, QMenuBar, QMainWindow, QMenu, QTextBrowser
-from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem
+from PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
+from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
 from PyQt6.QtGui     import QPixmap, QFont
 from PyQt6.QtCore    import Qt
 
 import sys
-import omdb
 import sqlite3
-import pandas as pd
+import pandas    as pd
 import os
-import requests
-import io
 import PIL.Image as Image
 import math
 
@@ -35,237 +30,284 @@ except AttributeError:
    wd = os.path.dirname(os.path.realpath(__file__))
 os.chdir(wd)
 
-# window size
-init_win_width   = 1400
-init_win_height  = 800
+# defaults
+main_win_width       = 1400
+main_win_height      = 800
+series_sidebar_width = 300
+series_tbl_hdrs      = ('season', 'episode', 'title', 'poster', 'released', 'plot', 'runtime')
+series_tbl_hdr_names = ('S',      'E',       'Title', 'Screen', 'Released', 'Plot', 'Runtime')
+series_tbl_widths    = (30,       30,        180,     200,      100,        350,    80)
+series_tbl_row_hgt   = 150
+
+def getMain(widget):
+    """
+    Get the main window
+    """
+    widget = widget or QApplication.activeWindow()
+    if widget is None:
+        return
+    parent = widget.parent()
+    if parent is None:
+        return widget
+    return getMain(parent) 
 
 class trekListApp(QWidget):
+    """
+    Main TrekList App Window
+    """
+    
     def __init__(self):
         super().__init__()
 
         # init UI
-        self.resize(init_win_width, init_win_height)
+        self.resize(main_win_width, main_win_height)
         self.setWindowTitle('TrekList v0.1')
-        self.show();
-        self.centerWindow()
+        #self.centerWindow()
 
-        # initialize databases
-        tl_filename = "treklist.db"
-        self.tl_conn = sqlite3.connect(tl_filename)
+        # initialize treklist database
+        self.tl_filename = "treklist.db"
+        self.tl_conn = sqlite3.connect(self.tl_filename)
         self.tl_curs = self.tl_conn.cursor()
 
+        # initialize user database
+        # ...
+
         # query databases
-        self.querySeriesDB()
+        self.dfs = dict()    # holds all dataframes
+        self.querySeries()
+        self.queryEpisodes()
+    
+        # set up main vertical layout
+        self.layout = QVBoxLayout()
+        self.layout.setSpacing(0)
+        self.layout.setContentsMargins(2, 2, 2, 10) # ltrb
+        self.setLayout(self.layout)
 
-        # initialize info for info label
-        self.n_eps  = 0
-        self.n_mins = 0
+        # tab widget
+        self.tab_widget = seriesTabsWidget(self)
+        self.layout.addWidget(self.tab_widget)
 
-        # set the main vertical box
-        mainVBox = QVBoxLayout()
-        mainVBox.setSpacing(0)
-        mainVBox.setContentsMargins(2, 2, 2, 10) # ltrb
-        self.tab_widget = seriesTabWidget(self)
-        
-        # set the info bar
-        days = math.floor(self.n_mins / 1440)
-        leftover_minutes = self.n_mins % 1440
-        hours = math.floor(leftover_minutes / 60)
-        mins = self.n_mins - (days*1440) - (hours*60)
-        self.infoBar = QLabel(f"{self.series['num']} series, {self.n_eps} episodes, {days} days {hours} hours {mins} mins runtime")
-        
-        # add widgets to layout
-        mainVBox.addWidget(self.tab_widget)
-        mainVBox.addWidget(self.infoBar, stretch=0, alignment=Qt.AlignmentFlag.AlignHCenter)
-        self.setLayout(mainVBox)
+        # info bar
+        self.info_bar = QLabel()
+        self.layout.addWidget(self.info_bar, stretch=0,
+            alignment=Qt.AlignmentFlag.AlignHCenter)
+        self.updateInfoBar()
+
+        self.show();
 
     def centerWindow(self):
         qr = self.frameGeometry()
         cp = self.screen().availableGeometry().center()
         qr.moveCenter(cp)
 
-    def querySeriesDB(self):
+    def querySeries(self):
         """
-        Query the Series Database
+        Query the Series SQL Database
+        """
+        self.series             = dict()
+        self.dfs["series"]      = pd.read_sql_query("SELECT * FROM series", self.tl_conn)
+        self.series["titles"]   = self.dfs["series"]['title'].tolist()
+        self.series["abbs"]     = self.dfs["series"]['abb'].tolist()
+        self.series["years"]    = self.dfs["series"]['year'].tolist()
+        self.series["imdb_ids"] = self.dfs["series"]['imdb_id'].tolist()
+        self.n_series           = len(self.dfs["series"])
 
-        This function will build a series dictionary with relevant information
+    def queryEpisodes(self):
+        """
+        Query the Episodes SQL Database
         """
 
-        # pull in series info
-        self.series = dict()
-        self.series["df"]       = pd.read_sql_query("SELECT * FROM series", self.tl_conn)
-        self.series["titles"]   = self.series["df"]['title'].tolist()
-        self.series["abbs"]     = self.series["df"]['abb'].tolist()
-        self.series["years"]    = self.series["df"]['year'].tolist()
-        self.series["imdb_ids"] = self.series["df"]['imdb_id'].tolist()
-        self.series["num"]      = len(self.series["abbs"])
+        # initialize vars for info label
+        self.n_eps  = 0
+        self.n_mins = 0
 
-class seriesTabWidget(QWidget):
+        # query all
+        for abb in self.dfs["series"]["abb"].tolist():
+
+            # query and determine num eps
+            self.dfs[abb] = pd.read_sql_query(f"SELECT * FROM {abb}",
+                self.tl_conn)
+            self.n_eps += len(self.dfs[abb])
+        
+            # determine num mins total
+            for i, row in self.dfs[abb].iterrows():
+                runtime = row['runtime']
+                if runtime != "N/A":
+                    self.n_mins += int(''.join(list(filter(str.isdigit,
+                        runtime))))
+
+    def getPoster(self, abb, imdb_id):
+        """
+        Retreive poster from database
+
+        Returns
+        -------
+        pix_map : QPixMap
+        """
+        df = self.dfs[abb]
+        img_data = df[df['imdb_id'] == imdb_id]['poster'].values[0]
+        pix_map  = QPixmap()
+        pix_map.loadFromData(img_data)
+        return pix_map
+
+    def updateInfoBar(self):
+        """
+        Updates the info bar with series, eps, mins, etc.
+        """
+        days     = math.floor(self.n_mins / 1440)
+        rem_mins = self.n_mins % 1440
+        hours    = math.floor(rem_mins / 60)
+        mins     = self.n_mins - (days*1440) - (hours*60)
+        info_txt = f"{self.n_series} series, {self.n_eps} episodes, " + \
+                   f"{days} days {hours} hours {mins} mins runtime"
+        self.info_bar.setText(info_txt)
+
+    def resizeEvent(self, event):
+        return super().resizeEvent(event)
+ 
+class seriesTabsWidget(QWidget):
     """
-    Series Tab Widget
+    Series Tabs Widget
     """
     
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
-        tab_layout = QHBoxLayout()
+        self.layout   = QHBoxLayout()
 
         #initialize tab screen
-        self.tabs = QTabWidget()
-        self.tabList = []
-        for i, abb in enumerate(parent.series["abbs"]):
-            self.tabList.append(QWidget())
-            self.tabs.addTab(self.tabList[i], abb.upper())
-        
-        # build all series tabs
-        for i, tab in enumerate(self.tabList):
-            this_tab_layout = QHBoxLayout(self.tabs)
+        self.tabs     = QTabWidget()
+        self.tab_list = []
+        for i, abb in enumerate(parent.dfs["series"]["abb"]):
+            self.tab_list.append(QWidget())
+            self.tabs.addTab(self.tab_list[i], abb.upper())
+
+        # add tabs to widget
+        self.layout.addWidget(self.tabs)
+        self.setLayout(self.layout)
+
+        # build each series tabs
+        for i, tab in enumerate(self.tab_list):
+
+            # setup layout
+            tab_layout  = QHBoxLayout()
+            tab.setLayout(tab_layout)
+
+            # set imdb_id for this tab
+            tab.imdb_id = parent.dfs["series"]["imdb_id"][i]
+            tab.abb = parent.dfs["series"]["abb"][i]
 
             # series side bar
-            series_info = QWidget()
-            series_info_layout = QVBoxLayout()
-            series_info_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-            series_info.setMaximumWidth(300)
-            img_lbl = QLabel()
-            parent.tl_curs.execute(f"SELECT * FROM series WHERE imdb_id = '{parent.series['imdb_ids'][i]}'")
-            record    = parent.tl_curs.fetchall()
-            pix_map   = QPixmap()
-            pix_map.loadFromData(record[0][6])
-            #pix_map = pix_map.scaled(img_lbl.size().width(), img_lbl.size().height(),
-            #    aspectRatioMode = Qt.AspectRatioMode.KeepAspectRatio,
-            #    transformMode   = Qt.TransformationMode.SmoothTransformation)
-            img_lbl.setPixmap(pix_map)
-            img_lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-            series_info_layout.addWidget(img_lbl)#, Qt.AlignmentFlag.AlignLeft)
-            series_title_lbl = QLabel(parent.series["titles"][i]+"\n"+parent.series["years"][i])
-            series_title_lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-            series_info_layout.addWidget(series_title_lbl)
-            series_info.setLayout(series_info_layout)
-            this_tab_layout.addWidget(series_info)
+            series_widg = seriesSideBarWidget(tab.abb, tab.imdb_id)
+            tab_layout.addWidget(series_widg)
+            series_widg.populate()
+
+            # series table
+            series_tbl = seriesTableWidget(tab.abb)
+            tab_layout.addWidget(series_tbl, stretch=1)
+            series_tbl.populate()
             
-            # add table
-            df_orig = pd.read_sql_query(f"SELECT * FROM {parent.series['abbs'][i]}", parent.tl_conn)
-            #df = df.drop(columns=['imdb_id','poster'])
-            df = df_orig.filter(['season', 'episode', 'title', 'plot', 'released', 'runtime'], axis=1)
-            df = df.astype({"season": str, "episode": str}, errors='raise') 
-            data = df.to_dict('list')
-            n_cols = len(data.keys())
-            n_rows = len(df)
-            table_wdgt = seriesTableView(data, parent.series["abbs"][i], parent, n_rows, n_cols)
-            this_tab_layout.addWidget(table_wdgt)
-
-            # add screenshots
-            for j, row in df_orig.iterrows():
-                parent.tl_curs.execute(f"SELECT poster FROM {parent.series['abbs'][i]} WHERE imdb_id = '{row['imdb_id']}'")
-                record    = parent.tl_curs.fetchall()
-                pix_map   = QPixmap()
-                #pix_map.loadFromData(record[0][6])
-
-            # assign layout
-            tab.setLayout(this_tab_layout)
-
-            # calculate num episodes, minutes
-            parent.n_eps += len(df)
-            for runtime in data['runtime']:
-                if runtime != "N/A":
-                    this_ep_rt = int(''.join(list(filter(str.isdigit, runtime))))
-                    parent.n_mins += this_ep_rt
-
-        # Add tabs to widget
-        tab_layout.addWidget(self.tabs)
-        self.setLayout(tab_layout)
-
-class seriesTableView(QTableWidget):
+class seriesSideBarWidget(QWidget):
     """
-    Series Table View
+    Series Side Bar Widget
     """
-    def __init__(self, data, series, parent, *args):
-        QTableWidget.__init__(self, *args)
-        self.series = series
-        self.data = data
-        self.parent = parent
-        #self.data = {k : data[k] for k in key_order}
-        self.setData()
-        #self.resizeColumnsToContents()
-        #self.resizeRowsToContents()
-        self.setAlternatingRowColors(True)
-        #self.setDragEnabled(True)
+    def __init__(self, abb, imdb_id):
+        super(QWidget, self).__init__()
 
-        #self.setDragDropMode()
+        # initialize layout
+        self.abb     = abb
+        self.imdb_id = imdb_id
+        self.setFixedWidth(series_sidebar_width)
+        self.layout  = QVBoxLayout()
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.layout.setContentsMargins(0, 0, 11, 11)
+        self.setLayout(self.layout)
 
-        # set correct orders and labels
-        self.setColumnCount(self.horizontalHeader().count() + 1)
-        self.setHorizontalHeaderLabels(['E', 'Plot', 'Released', 'Runtime', 'S', 'Title', 'Screen'])
-        self.horizontalHeader().moveSection(4,0)
-        self.horizontalHeader().moveSection(5,2)
-        self.horizontalHeader().moveSection(4,3)
-        self.horizontalHeader().moveSection(6,3)
-        #self.resizeColumnsToContents()   
-        #self.horizontalHeader().moveSection(7, )
-        self.verticalHeader().setDefaultSectionSize(160)  
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(0), 30)  # season
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(1), 30)  # episode
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(2), 140) # title
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(3), 250) # screenshot
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(4), 90)  # released
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(5), 350) # plot
-        self.setColumnWidth(self.horizontalHeader().logicalIndex(6), 70)  # runtime
+    def populate(self):
+
         
-        # make headers bold
+        # add series title
+        df = getMain(self).dfs["series"]
+        df = df[df['imdb_id'] == self.imdb_id]
+        title = df['title'].values[0]
+        title_label = QLabel(title)
+        font = QFont()
+        font.setBold(True)
+        title_label.setFont(font)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.layout.addWidget(title_label)
+
+        # add years
+        year = df['year'].values[0]
+        year_label = QLabel(year)
+        year_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.layout.addWidget(year_label)
+
+        # add series poster
+        self.poster = resizingImageWidget()
+        self.layout.addWidget(self.poster)
+        self.poster.setPoster("series", self.imdb_id)
+
+class seriesTableWidget(QTableWidget):
+    """
+    Series Table Widget
+    """
+    def __init__(self, abb):
+        super(QTableWidget, self).__init__()
+        self.abb = abb
+        self.setAlternatingRowColors(True)
+        self.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+
+    def populate(self):
+
+        # get dataframe
+        self.df      = getMain(self).dfs[self.abb]
+        self.df_hdrs = self.df.keys().values
+        
+        # set up columns/headers
+        self.setColumnCount(len(series_tbl_hdrs))
+        self.setHorizontalHeaderLabels(series_tbl_hdr_names)
+        for c, hdr_width in enumerate(series_tbl_widths):
+            self.setColumnWidth(c, hdr_width)
         font = QFont()
         font.setBold(True)
         self.horizontalHeader().setFont(font)
         
-        # make nothing editable
-        #self.setEditTriggers(QAbstractItemView.)
-
-        # loop through and set all posters
-        for row in range(len(self.data['season'])):
-            col = 6
-            self.setImage(row, col)
-            #setImage(row, col, )
-
-    def setData(self): 
-        horHeaders = []
-        for n, key in enumerate(sorted(self.data.keys())):
-            horHeaders.append(key)
-            for m, item in enumerate(self.data[key]):
-                newitem = QTableWidgetItem(item)
-                self.setItem(m, n, newitem)
-        self.setHorizontalHeaderLabels(horHeaders)
+        # append each row from series dataframes
+        for r, row in enumerate(self.df.iterrows()):
+            self.insertRow(r)
+            for c, hdr in enumerate(series_tbl_hdrs):
+                if hdr != "poster":
+                    self.setItem(r, c, QTableWidgetItem(f"{self.df[hdr][r]}"))
+                else:
+                    self.setImage(r, c)
+        self.verticalHeader().setDefaultSectionSize(series_tbl_row_hgt)
 
     def setImage(self, row, col):
-        """
-        Sets a cell to the specified image data
-        """
-        #pass
-        season = self.data['season'][row]
-        episode = self.data['episode'][row]
-        self.parent.tl_curs.execute(f"SELECT * from {self.series} WHERE season == '{season}' AND episode == '{episode}'")
-        record = self.parent.tl_curs.fetchall()
-        if len(record) > 0:
-            imgData = record[0][11]
-            ##print(imgData)#
-            #exit
-            imgwid = ImageWidget(imgData, self)
-            self.setCellWidget(row, col, imgwid)
+        img_wdgt = resizingImageWidget()
+        self.setCellWidget(row, col, img_wdgt)
+        img_wdgt.setPoster(self.abb, self.df["imdb_id"][row])
 
-        #self.cursor.execute("curs.execute("SELECT * FROM self.series WHERE imdb_id = 'tt0708469'")")
-        #image = 
-        #self.setCellWidget(row, col, image)
-
-class ImageWidget(QLabel):
+class resizingImageWidget(QLabel):
     """
-    Image widget for SQL BLOB images
+    Resizing Image Widget
     """
+    def __init__(self):
+        super(QLabel, self).__init__()
+        self.setSizePolicy(QSizePolicy.Policy.Expanding,
+                           QSizePolicy.Policy.Expanding)
+        
+    def setPoster(self, abb, imdb_id):
+        self.pix_map = getMain(self).getPoster(abb,imdb_id)
+        #self.showMaximized() # calls resizeEvent()
+        #self.update()
 
-    def __init__(self, imageData, parent):
-        super(ImageWidget, self).__init__(parent)
-        self.picture = QPixmap()
-        self.picture.loadFromData(imageData)
-        self.picture = self.picture.scaled(250, 250,
+    def resizeEvent(self, event):
+        pix_map = self.pix_map.scaled(self.size().width(), self.size().height(),
             aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio,
             transformMode=Qt.TransformationMode.SmoothTransformation)
-        self.setPixmap(self.picture)
+        self.setPixmap(pix_map)
+        self.adjustSize()
+        return super().resizeEvent(event)
 
 def main():
     app = QApplication(sys.argv)
