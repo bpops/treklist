@@ -38,6 +38,10 @@ series_tbl_hdrs      = ('season', 'episode', 'title', 'poster', 'released', 'plo
 series_tbl_hdr_names = ('S',      'E',       'Title', 'Screen', 'Released', 'Plot', 'Runtime')
 series_tbl_widths    = (30,       30,        180,     200,      100,        350,    80)
 series_tbl_row_hgt   = 150
+movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'runtime')
+movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Runtime')
+movies_tbl_widths    = (180,      200,        100,       350,     80)
+movie_tbl_row_hgt    = 300
 
 def getMain(widget):
     """
@@ -76,6 +80,7 @@ class trekListApp(QWidget):
         self.dfs = dict()    # holds all dataframes
         self.querySeries()
         self.queryEpisodes()
+        self.queryMovies()
     
         # set up main vertical layout
         self.layout = QVBoxLayout()
@@ -136,6 +141,20 @@ class trekListApp(QWidget):
                     self.n_mins += int(''.join(list(filter(str.isdigit,
                         runtime))))
 
+    def queryMovies(self):
+        """
+        Query the Movies SQL Database
+        """
+
+        # query
+        self.dfs["mov"] = pd.read_sql_query(f"SELECT * FROM mov", self.tl_conn)
+        self.n_movies   = len(self.dfs["mov"])
+        for i, row in self.dfs["mov"].iterrows():
+            runtime = row['runtime']
+            if runtime != "N/A":
+                self.n_mins += int(''.join(list(filter(str.isdigit,
+                        runtime))))
+
     def getPoster(self, abb, imdb_id):
         """
         Retreive poster from database
@@ -159,6 +178,7 @@ class trekListApp(QWidget):
         hours    = math.floor(rem_mins / 60)
         mins     = self.n_mins - (days*1440) - (hours*60)
         info_txt = f"{self.n_series} series, {self.n_eps} episodes, " + \
+                   f"{self.n_movies} movies, " + \
                    f"{days} days {hours} hours {mins} mins runtime"
         self.info_bar.setText(info_txt)
 
