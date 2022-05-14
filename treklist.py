@@ -10,6 +10,7 @@
 #                   https://github.com/bpops/treklist
 
 # pyqt6 requirements
+from datetime import datetime
 from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout
 from PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
 from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
@@ -22,6 +23,7 @@ import pandas    as pd
 import os
 import PIL.Image as Image
 import math
+from datetime import datetime
 
 # dev vs bundled paths
 try:
@@ -40,8 +42,8 @@ series_tbl_widths    = (30,       30,        180,     200,      100,        350,
 series_tbl_row_hgt   = 150
 movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'runtime')
 movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Runtime')
-movies_tbl_widths    = (180,      200,        100,       350,     80)
-movies_tbl_row_hgt   = 300
+movies_tbl_widths    = (180,      300,        100,       350,     80)
+movies_tbl_row_hgt   = 450
 
 def getMain(widget):
     """
@@ -346,8 +348,13 @@ class moviesTableWidget(QTableWidget):
         for r, row in enumerate(self.df.iterrows()):
             self.insertRow(r)
             for c, hdr in enumerate(movies_tbl_hdrs):
+                # datetime_object = datetime.strptime('Jun 1 2005  1:33PM', '%b %d %Y %I:%M%p')
                 if hdr != "poster":
-                    self.setItem(r, c, QTableWidgetItem(f"{self.df[hdr][r]}"))
+                    if hdr == "released":
+                        dt_obj = datetime.strptime(self.df[hdr][r], "%d %b %Y")
+                        self.setItem(r, c, QTableWidgetItem(dt_obj.strftime("%Y-%m-%d")))
+                    else:
+                        self.setItem(r, c, QTableWidgetItem(f"{self.df[hdr][r]}"))
                 else:
                     self.setImage(r, c)
         self.verticalHeader().setDefaultSectionSize(movies_tbl_row_hgt)
