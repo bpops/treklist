@@ -38,11 +38,11 @@ main_win_height      = 800
 series_sidebar_width = 300
 series_tbl_hdrs      = ('season', 'episode', 'title', 'poster', 'released', 'plot', 'runtime')
 series_tbl_hdr_names = ('S',      'E',       'Title', 'Screen', 'Released', 'Plot', 'Runtime')
-series_tbl_widths    = (30,       30,        180,     200,      100,        350,    80)
+series_tbl_widths    = (30,       30,        180,     200,      95,         350,    80)
 series_tbl_row_hgt   = 150
-movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'runtime')
-movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Runtime')
-movies_tbl_widths    = (180,      300,        100,       350,     80)
+movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'director', 'runtime')
+movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Director', 'Runtime')
+movies_tbl_widths    = (180,      300,        100,       350,     100,       80)
 movies_tbl_row_hgt   = 450
 
 def getMain(widget):
