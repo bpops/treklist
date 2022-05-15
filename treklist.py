@@ -11,9 +11,11 @@
 
 # pyqt6 requirements
 from datetime import datetime
+from http.client import PRECONDITION_REQUIRED
 from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout
 from PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
 from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
+from PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget
 from PyQt6.QtGui     import QPixmap, QFont
 from PyQt6.QtCore    import Qt
 
@@ -38,8 +40,11 @@ main_win_height      = 800
 series_sidebar_width = 300
 series_tbl_hdrs      = ('season', 'episode', 'title', 'poster', 'released', 'plot', 'runtime')
 series_tbl_hdr_names = ('S',      'E',       'Title', 'Screen', 'Released', 'Plot', 'Runtime')
-series_tbl_widths    = (30,       30,        180,     200,      95,         350,    80)
+series_tbl_widths    = (30,       30,        120,     200,      90,         290,    80)
 series_tbl_row_hgt   = 150
+usr_tbl_hdrs         = ('watched', 'last_watched')
+usr_tbl_names        = ('✓',       'Watched')
+usr_tbl_widths       = (30,        80,)
 movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'director', 'runtime')
 movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Director', 'Runtime')
 movies_tbl_widths    = (180,      300,        100,       350,     100,       80)
@@ -85,6 +90,7 @@ class trekListApp(QWidget):
         self.querySeries()
         self.queryEpisodes()
         self.queryMovies()
+        self.queryUserLog()
     
         # set up main vertical layout
         self.layout = QVBoxLayout()
@@ -158,6 +164,12 @@ class trekListApp(QWidget):
             if runtime != "N/A":
                 self.n_mins += int(''.join(list(filter(str.isdigit,
                         runtime))))
+
+    def queryUserLog(self):
+        """
+        Query the User SQL Database
+        """
+        self.dfs["usr"] = pd.read_sql_query(f"SELECT * FROM log", self.usr_conn)
 
     def getPoster(self, abb, imdb_id):
         """
@@ -305,9 +317,9 @@ class seriesTableWidget(QTableWidget):
         self.df_hdrs = self.df.keys().values
         
         # set up columns/headers
-        self.setColumnCount(len(series_tbl_hdrs))
-        self.setHorizontalHeaderLabels(series_tbl_hdr_names)
-        for c, hdr_width in enumerate(series_tbl_widths):
+        self.setColumnCount(len(series_tbl_hdrs) + len(usr_tbl_hdrs))
+        self.setHorizontalHeaderLabels(series_tbl_hdr_names + usr_tbl_names)
+        for c, hdr_width in enumerate(series_tbl_widths + usr_tbl_widths):
             self.setColumnWidth(c, hdr_width)
         font = QFont()
         font.setBold(True)
@@ -316,17 +328,76 @@ class seriesTableWidget(QTableWidget):
         # append each row from series dataframes
         for r, row in enumerate(self.df.iterrows()):
             self.insertRow(r)
+
+            # insert series info
             for c, hdr in enumerate(series_tbl_hdrs):
                 if hdr != "poster":
                     self.setItem(r, c, QTableWidgetItem(f"{self.df[hdr][r]}"))
                 else:
                     self.setImage(r, c)
+
+            # query user info
+            imdb_id = self.df["imdb_id"][r]
+            usr_df = pd.read_sql_query(f"SELECT * FROM log WHERE imdb_id == '{imdb_id}'", getMain(self).usr_conn)
+            if len(usr_df) == 0:
+                usr_info = {'watched': False,
+                            'last_watched': None,
+                            }
+            else:
+                usr_info = usr_df.to_dict()
+
+            # insert user info
+            for c, hdr in enumerate(usr_tbl_hdrs):
+                c += len(series_tbl_hdrs)
+
+                # watched checckbox
+                if hdr == "watched":
+                    checkbox = watchedCheckboxWidget(imdb_id, usr_info['watched'])
+                    self.setCellWidget(r, c, checkbox)
+                elif hdr == "last_watched":
+                    button  = watchedDateButton(imdb_id, usr_info['last_watched'])
+                    self.setCellWidget(r, c, button)
+
         self.verticalHeader().setDefaultSectionSize(series_tbl_row_hgt)
 
     def setImage(self, row, col):
         img_wdgt = resizingImageWidget()
         self.setCellWidget(row, col, img_wdgt)
         img_wdgt.setPoster(self.abb, self.df["imdb_id"][row])
+
+class watchedCheckboxWidget(QCheckBox):
+    """
+    Checkbox table widget
+    """
+
+    def __init__(self, imdb_id, checked):
+        super(QCheckBox, self).__init__()
+
+        # set check state
+        self.setChecked(checked)
+
+        # tie action
+        self.clicked.connect(self.setTo)
+
+    def setTo(self):
+        print(self.isChecked())
+
+class watchedDateButton(QPushButton):
+    """
+    Watched Date Button
+    """
+    def __init__(self, imdb_id, date):
+        super(QPushButton, self).__init__()
+        if date is None:
+            text = "Pick Date"
+        else:
+            text = date
+        self.setText(text)
+        self.clicked.connect(self.setDate)
+
+    def setDate(self):
+        cal_wdg = QCalendarWidget()
+        cal_wdg.show()
 
 class moviesTableWidget(QTableWidget):
     """
