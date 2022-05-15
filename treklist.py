@@ -76,7 +76,9 @@ class trekListApp(QWidget):
         self.tl_curs = self.tl_conn.cursor()
 
         # initialize user database
-        # ...
+        self.usr_filename = "user.db"
+        self.usr_conn = sqlite3.connect(self.usr_filename)
+        self.usr_curs = self.usr_conn.cursor()
 
         # query databases
         self.dfs = dict()    # holds all dataframes
@@ -274,6 +276,12 @@ class seriesSideBarWidget(QWidget):
         year_label = QLabel(year)
         year_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         self.layout.addWidget(year_label)
+
+        # add seasons
+        seas = df['total_seasons'].values[0]
+        seas_label = QLabel(f"{seas} seasons")
+        seas_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.layout.addWidget(seas_label)
 
         # add series poster
         self.poster = resizingImageWidget()
