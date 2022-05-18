@@ -15,9 +15,9 @@ from http.client import PRECONDITION_REQUIRED
 from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout
 from PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
 from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
-from PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget
+from PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit
 from PyQt6.QtGui     import QPixmap, QFont
-from PyQt6.QtCore    import Qt
+from PyQt6.QtCore    import Qt, QDateTime, QDate
 
 import sys
 import sqlite3
@@ -170,6 +170,24 @@ class trekListApp(QWidget):
         Query the User SQL Database
         """
         self.dfs["usr"] = pd.read_sql_query(f"SELECT * FROM log", self.usr_conn)
+
+    def getUserItem(self, imdb_id, hdr):
+        """
+        Get User Log Item
+        """
+
+        def_values = {"watched": 0}
+        def_value  = def_values[hdr]
+        res = self.dfs["usr"][self.dfs["usr"]["imdb_id"] == imdb_id][hdr]
+        #res = self.dfs["usr"]
+        if len(res) > 0:
+            value = res.values[0]
+        else:
+            value = def_value
+
+        if hdr == "watched":
+            value = bool(value)
+        return value
 
     def getPoster(self, abb, imdb_id):
         """
@@ -338,13 +356,6 @@ class seriesTableWidget(QTableWidget):
 
             # query user info
             imdb_id = self.df["imdb_id"][r]
-            usr_df = pd.read_sql_query(f"SELECT * FROM log WHERE imdb_id == '{imdb_id}'", getMain(self).usr_conn)
-            if len(usr_df) == 0:
-                usr_info = {'watched': False,
-                            'last_watched': None,
-                            }
-            else:
-                usr_info = usr_df.to_dict()
 
             # insert user info
             for c, hdr in enumerate(usr_tbl_hdrs):
@@ -352,11 +363,12 @@ class seriesTableWidget(QTableWidget):
 
                 # watched checckbox
                 if hdr == "watched":
-                    checkbox = watchedCheckboxWidget(imdb_id, usr_info['watched'])
+                    checkbox = watchedCheckboxWidget(imdb_id)
                     self.setCellWidget(r, c, checkbox)
+                    checkbox.setCheckedState()
                 elif hdr == "last_watched":
-                    button  = watchedDateButton(imdb_id, usr_info['last_watched'])
-                    self.setCellWidget(r, c, button)
+                    date_widg  = watchedDateWidget(imdb_id)
+                    self.setCellWidget(r, c, date_widg)
 
         self.verticalHeader().setDefaultSectionSize(series_tbl_row_hgt)
 
@@ -370,34 +382,45 @@ class watchedCheckboxWidget(QCheckBox):
     Checkbox table widget
     """
 
-    def __init__(self, imdb_id, checked):
+    def __init__(self, imdb_id):
         super(QCheckBox, self).__init__()
-
-        # set check state
-        self.setChecked(checked)
+        self.imdb_id = imdb_id
 
         # tie action
         self.clicked.connect(self.setTo)
 
+    def setCheckedState(self):
+        checked = getMain(self).getUserItem(self.imdb_id, 'watched')
+        if self.imdb_id == "tt0708469":
+            print(checked)
+        self.setChecked(checked)
+
     def setTo(self):
         print(self.isChecked())
 
-class watchedDateButton(QPushButton):
+class watchedDateWidget(QDateEdit):
     """
-    Watched Date Button
+    Watched Date Widget
     """
-    def __init__(self, imdb_id, date):
-        super(QPushButton, self).__init__()
-        if date is None:
-            text = "Pick Date"
-        else:
-            text = date
-        self.setText(text)
-        self.clicked.connect(self.setDate)
+    def __init__(self, imdb_id):
+        super(QDateEdit, self).__init__()
 
-    def setDate(self):
-        cal_wdg = QCalendarWidget()
-        cal_wdg.show()
+        # settings
+        self.setCalendarPopup(True)
+        self.setDisplayFormat("yyyy-mm-dd")
+
+        # enable NULL values
+        self.setSpecialValueText(" ")
+        self.setNull()
+
+    def setNull(self):
+        self.setDate(QDate.fromString("01/01/0001", "dd/MM/yyyy"))
+
+    #def setDate(self):
+    #    print('calendar!')
+    #    cal_wdg = QCalendarWidget()
+    #    #getMain(self).addWidget(cal_wdg)
+    #    cal_wdg.show()
 
 class moviesTableWidget(QTableWidget):
     """
