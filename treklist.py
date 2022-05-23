@@ -1,11 +1,11 @@
 #
 #                __________  ________ __ __    _______________
 #               /_  __/ __ \/ ____/ //_// /   /  _/ ___/_  __/
-#                / / / /_/ / __/ / ,<  / /    / / \__ \ / /
+#                / / / /_/ / __/ / ,<  / /    / / \__ \ / /f
 #               / / / _, _/ /___/ /| |/ /____/ / ___/ // /
 #              /_/ /_/ |_/_____/_/ |_/_____/___//____//_/
 #
-#                      a Star Trek episode tracker
+#                      a Star Trek episode trackerf
 #
 #                   https://github.com/bpops/treklist
 
@@ -188,6 +188,21 @@ class trekListApp(QWidget):
         if hdr == "watched":
             value = bool(value)
         return value
+
+    def setUserItem(self, imdb_id, **kwargs):
+
+        # get info
+        df = pd.read_sql_query(f"SELECT * FROM log WHERE imdb_id == '{imdb_id}'", self.usr_conn)
+        key = list(kwargs.keys())[0]
+        val = kwargs[key]
+
+        # update the record
+        if len(df) > 0: # record exists
+             cmd = f"UPDATE log SET {key} = {int(val)} WHERE imdb_id = '{imdb_id}'"
+        else:           # record does not exist
+             cmd = f"INSERT INTO log (imdb_id, watched) VALUES('{imdb_id}', {int(val)})"
+        self.usr_conn.execute(cmd)
+        self.usr_conn.commit()
 
     def getPoster(self, abb, imdb_id):
         """
@@ -396,7 +411,7 @@ class watchedCheckboxWidget(QCheckBox):
         self.setChecked(checked)
 
     def setTo(self):
-        print(self.isChecked())
+        getMain(self).setUserItem(self.imdb_id, watched=self.isChecked())
 
 class watchedDateWidget(QDateEdit):
     """
