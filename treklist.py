@@ -35,7 +35,7 @@ except AttributeError:
 os.chdir(wd)
 
 # defaults
-main_win_width       = 1400
+main_win_width       = 1410
 main_win_height      = 800
 series_sidebar_width = 300
 series_tbl_hdrs      = ('season', 'episode', 'title', 'poster', 'released', 'plot', 'runtime')
@@ -44,7 +44,7 @@ series_tbl_widths    = (30,       30,        120,     200,      90,         290,
 series_tbl_row_hgt   = 150
 usr_tbl_hdrs         = ('watched', 'last_watched')
 usr_tbl_names        = ('✓',       'Watched')
-usr_tbl_widths       = (30,        80,)
+usr_tbl_widths       = (30,        110,)
 movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'director', 'runtime')
 movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Director', 'Runtime')
 movies_tbl_widths    = (180,      300,        100,       350,     100,       80)
@@ -176,20 +176,22 @@ class trekListApp(QWidget):
         Get User Log Item
         """
 
-        def_values = {"watched": 0}
+        def_values = {"watched": False,
+                      "last_watched": None,
+                     }
         def_value  = def_values[hdr]
         res = self.dfs["usr"][self.dfs["usr"]["imdb_id"] == imdb_id][hdr]
-        #res = self.dfs["usr"]
         if len(res) > 0:
             value = res.values[0]
         else:
             value = def_value
 
-        if hdr == "watched":
-            value = bool(value)
         return value
 
     def setUserItem(self, imdb_id, **kwargs):
+        """
+        Set User Log Item in SQL database
+        """
 
         # get info
         df = pd.read_sql_query(f"SELECT * FROM log WHERE imdb_id == '{imdb_id}'", self.usr_conn)
@@ -384,6 +386,7 @@ class seriesTableWidget(QTableWidget):
                 elif hdr == "last_watched":
                     date_widg  = watchedDateWidget(imdb_id)
                     self.setCellWidget(r, c, date_widg)
+                    date_widg.setWatchedDate()
 
         self.verticalHeader().setDefaultSectionSize(series_tbl_row_hgt)
 
@@ -406,8 +409,6 @@ class watchedCheckboxWidget(QCheckBox):
 
     def setCheckedState(self):
         checked = getMain(self).getUserItem(self.imdb_id, 'watched')
-        if self.imdb_id == "tt0708469":
-            print(checked)
         self.setChecked(checked)
 
     def setTo(self):
@@ -419,23 +420,30 @@ class watchedDateWidget(QDateEdit):
     """
     def __init__(self, imdb_id):
         super(QDateEdit, self).__init__()
+        self.imdb_id = imdb_id
 
         # settings
         self.setCalendarPopup(True)
-        self.setDisplayFormat("yyyy-mm-dd")
+        self.setDisplayFormat("yyyy-MM-dd")
 
-        # enable NULL values
-        self.setSpecialValueText(" ")
-        self.setNull()
+        # connect to function
+        self.dateChanged.connect(self.setTo)
+
+    # set date
+    def setWatchedDate(self):
+        watched_date = getMain(self).getUserItem(self.imdb_id, 'last_watched')
+        if watched_date is None:
+            self.setNull()
+        else:
+            self.setDate(QDate.fromString(watched_date, "yyyy-MM-dd"))
 
     def setNull(self):
+        self.setSpecialValueText(" ")
         self.setDate(QDate.fromString("01/01/0001", "dd/MM/yyyy"))
 
-    #def setDate(self):
-    #    print('calendar!')
-    #    cal_wdg = QCalendarWidget()
-    #    #getMain(self).addWidget(cal_wdg)
-    #    cal_wdg.show()
+    def setTo(self):
+        print('date set to:')
+        print(self.date().toString("yyyy-MM-dd"))
 
 class moviesTableWidget(QTableWidget):
     """
