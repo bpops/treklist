@@ -12,10 +12,10 @@
 # pyqt6 requirements
 from datetime import datetime
 from http.client import PRECONDITION_REQUIRED
-from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout
+from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QMainWindow
 from PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
 from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
-from PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit
+from PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit, QMenuBar
 from PyQt6.QtGui     import QPixmap, QFont
 from PyQt6.QtCore    import Qt, QDateTime, QDate
 
@@ -107,6 +107,11 @@ class trekListApp(QWidget):
         self.layout.addWidget(self.info_bar, stretch=0,
             alignment=Qt.AlignmentFlag.AlignHCenter)
         self.updateInfoBar()
+
+        # generate menu bar
+        self.menu_bar = QMenuBar(self)
+        self.menu_bar.addMenu('File')
+        self.layout.addWidget(self.menu_bar)
 
         self.show();
 
@@ -200,9 +205,15 @@ class trekListApp(QWidget):
 
         # update the record
         if len(df) > 0: # record exists
-             cmd = f"UPDATE log SET {key} = {int(val)} WHERE imdb_id = '{imdb_id}'"
+            if isinstance(val, int):
+                cmd = f"UPDATE log SET {key} = {int(val)} WHERE imdb_id = '{imdb_id}'"
+            else:
+                cmd = f"UPDATE log SET {key} = '{val}' WHERE imdb_id = '{imdb_id}'"
         else:           # record does not exist
-             cmd = f"INSERT INTO log (imdb_id, watched) VALUES('{imdb_id}', {int(val)})"
+            if isinstance(val, int):
+                cmd = f"INSERT INTO log (imdb_id, {key}) VALUES('{imdb_id}', {int(val)})"
+            else:
+                cmd = f"INSERT INTO log (imdb_id, {key}) VALUES('{imdb_id}', '{val}')"   
         self.usr_conn.execute(cmd)
         self.usr_conn.commit()
 
@@ -431,11 +442,13 @@ class watchedDateWidget(QDateEdit):
 
     # set date
     def setWatchedDate(self):
+        self.blockSignals(True)
         watched_date = getMain(self).getUserItem(self.imdb_id, 'last_watched')
         if watched_date is None:
             self.setNull()
         else:
             self.setDate(QDate.fromString(watched_date, "yyyy-MM-dd"))
+        self.blockSignals(False)
 
     def setNull(self):
         self.setSpecialValueText(" ")
@@ -443,7 +456,10 @@ class watchedDateWidget(QDateEdit):
 
     def setTo(self):
         print('date set to:')
-        print(self.date().toString("yyyy-MM-dd"))
+        date_str = self.date().toString("yyyy-MM-dd")
+        print(date_str)
+        
+        getMain(self).setUserItem(self.imdb_id, last_watched=date_str)
 
 class moviesTableWidget(QTableWidget):
     """
@@ -514,6 +530,7 @@ class resizingImageWidget(QLabel):
 def main():
     app = QApplication(sys.argv)
     ex = trekListApp()
+    ex.show()
     sys.exit(app.exec())
 
 if __name__ == '__main__':
