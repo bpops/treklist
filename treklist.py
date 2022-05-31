@@ -1,23 +1,23 @@
 #
 #                __________  ________ __ __    _______________
 #               /_  __/ __ \/ ____/ //_// /   /  _/ ___/_  __/
-#                / / / /_/ / __/ / ,<  / /    / / \__ \ / /f
+#                / / / /_/ / __/ / ,<  / /    / / \__ \ / /
 #               / / / _, _/ /___/ /| |/ /____/ / ___/ // /
 #              /_/ /_/ |_/_____/_/ |_/_____/___//____//_/
 #
-#                      a Star Trek episode trackerf
+#                      a Star Trek episode tracker
 #
 #                   https://github.com/bpops/treklist
 
 # pyqt6 requirements
-from datetime import datetime
-from http.client import PRECONDITION_REQUIRED
+from http.client     import PRECONDITION_REQUIRED
 from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QMainWindow
 from PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
 from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
 from PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit, QMenuBar
 from PyQt6.QtGui     import QPixmap, QFont
 from PyQt6.QtCore    import Qt, QDateTime, QDate
+from datetime        import datetime
 
 import sys
 import sqlite3
@@ -25,12 +25,11 @@ import pandas    as pd
 import os
 import PIL.Image as Image
 import math
-from datetime import datetime
 
-# dev vs bundled paths
-try:
-   wd = sys._MEIPASS
-except AttributeError:
+# change working directory
+try:                    # bundled path
+   wd = sys._MEIPASS    
+except AttributeError:  # python script
    wd = os.path.dirname(os.path.realpath(__file__))
 os.chdir(wd)
 
@@ -440,6 +439,13 @@ class watchedDateWidget(QDateEdit):
         # connect to function
         self.dateChanged.connect(self.setTo)
 
+        # default to today
+        today_date  = QDate.currentDate()
+        today_year  = today_date.year()
+        today_month = today_date.month()
+        self.calendarWidget().setCurrentPage(today_year, today_month)
+
+
     # set date
     def setWatchedDate(self):
         self.blockSignals(True)
@@ -457,9 +463,9 @@ class watchedDateWidget(QDateEdit):
     def setTo(self):
         print('date set to:')
         date_str = self.date().toString("yyyy-MM-dd")
-        print(date_str)
         
         getMain(self).setUserItem(self.imdb_id, last_watched=date_str)
+
 
 class moviesTableWidget(QTableWidget):
     """
