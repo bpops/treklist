@@ -14,8 +14,9 @@ from http.client     import PRECONDITION_REQUIRED
 from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QMainWindow
 from PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
 from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
-from PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit, QMenuBar
-from PyQt6.QtGui     import QPixmap, QFont, QMouseEvent
+from PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit
+from PyQt6.QtWidgets import QMenuBar, QMenu, QTextBrowser
+from PyQt6.QtGui     import QPixmap, QFont, QMouseEvent, QAction
 from PyQt6.QtCore    import Qt, QDateTime, QDate
 from datetime        import datetime
 
@@ -52,7 +53,6 @@ os.chdir(wd)
 
 # determine operating system
 on_macos = platform.uname().system.startswith('Darw')
-print(on_macos)
 
 def getMain(widget):
     """
@@ -114,10 +114,22 @@ class trekListApp(QMainWindow):
             alignment=Qt.AlignmentFlag.AlignHCenter)
         self.updateInfoBar()
 
+        # menu bar contents
+        gpl_act   = QAction("GPL-3.0", self)
+        gpl_act.triggered.connect(self.showLicense)
+
         # generate menu bar
-        self.menu_bar = QMenuBar(self)
-        self.menu_bar.addMenu('File')
-        self.layout.addWidget(self.menu_bar)
+        if on_macos:
+            self.menu_bar = QMenuBar()
+            self.menu_bar.setNativeMenuBar(True)
+        else:
+            self.menu_bar = self.menuBar()
+
+        # help menu
+        help_menu = self.menu_bar.addMenu("Help")
+        help_menu.addAction(gpl_act)
+    
+        #self.layout.addWidget(self.menu_bar)
 
         self.show();
 
@@ -125,6 +137,12 @@ class trekListApp(QMainWindow):
         qr = self.frameGeometry()
         cp = self.screen().availableGeometry().center()
         qr.moveCenter(cp)
+
+    def showLicense(self):
+        """
+        Show the License
+        """
+        self.lic_win = licenseWindow()
 
     def querySeries(self):
         """
@@ -537,6 +555,25 @@ class resizingImageWidget(QLabel):
         self.setPixmap(pix_map)
         self.adjustSize()
         return super().resizeEvent(event)
+
+class licenseWindow(QTextBrowser):
+    """
+    License Window
+    """
+    def __init__(self):
+        super().__init__()
+
+        # read license text and add
+        f = open("LICENSE")
+        licText = f.read()
+        f.close()
+        self.insertPlainText(licText)
+        self.setWindowTitle("GNU General Public License v3")
+        self.resize(580,500)
+        self.show()
+
+        # scroll to top
+        self.verticalScrollBar().setValue(0)
 
 def main():
     app = QApplication(sys.argv)
