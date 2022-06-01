@@ -115,8 +115,11 @@ class trekListApp(QMainWindow):
         self.updateInfoBar()
 
         # menu bar contents
-        gpl_act   = QAction("GPL-3.0", self)
-        gpl_act.triggered.connect(self.showLicense)
+        gpl_act   = QAction("GPL-3.0 License", self)
+        gpl_act.triggered.connect(self.showGPL)
+        abt_act   = QAction("More Info", self)
+        abt_act.triggered.connect(self.showAbout)
+
 
         # generate menu bar
         if on_macos:
@@ -128,9 +131,8 @@ class trekListApp(QMainWindow):
         # help menu
         help_menu = self.menu_bar.addMenu("Help")
         help_menu.addAction(gpl_act)
+        help_menu.addAction(abt_act)
     
-        #self.layout.addWidget(self.menu_bar)
-
         self.show();
 
     def centerWindow(self):
@@ -138,11 +140,18 @@ class trekListApp(QMainWindow):
         cp = self.screen().availableGeometry().center()
         qr.moveCenter(cp)
 
-    def showLicense(self):
+    def showGPL(self):
         """
-        Show the License
+        Show the GPL License
         """
-        self.lic_win = licenseWindow()
+        self.gpl_win = gplWindow()
+
+    def showAbout(self):
+        """
+        Show the About Window
+        """
+        self.abt_win = aboutWindow()
+
 
     def querySeries(self):
         """
@@ -556,9 +565,9 @@ class resizingImageWidget(QLabel):
         self.adjustSize()
         return super().resizeEvent(event)
 
-class licenseWindow(QTextBrowser):
+class gplWindow(QTextBrowser):
     """
-    License Window
+    GPL License Window
     """
     def __init__(self):
         super().__init__()
@@ -574,6 +583,26 @@ class licenseWindow(QTextBrowser):
 
         # scroll to top
         self.verticalScrollBar().setValue(0)
+
+class aboutWindow(QTextBrowser):
+    """
+    About Window
+    """
+    def __init__(self):
+        super().__init__()
+
+        # read license text and add
+        self.append("\n")
+        self.append("                    created for fun by bpops")
+        self.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href=\"https://github.com/bpops/treklist\">https://github.com/bpops/treklist</a>")
+        self.setWindowTitle("More Info")
+        self.resize(290,100)
+        self.setOpenExternalLinks(True)
+        self.show()
+
+        # scroll to top
+        self.verticalScrollBar().setValue(0)
+
 
 def main():
     app = QApplication(sys.argv)
