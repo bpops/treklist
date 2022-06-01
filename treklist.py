@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QMainWin
 from PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
 from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
 from PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit, QMenuBar
-from PyQt6.QtGui     import QPixmap, QFont
+from PyQt6.QtGui     import QPixmap, QFont, QMouseEvent
 from PyQt6.QtCore    import Qt, QDateTime, QDate
 from datetime        import datetime
 
@@ -439,12 +439,13 @@ class watchedDateWidget(QDateEdit):
         # connect to function
         self.dateChanged.connect(self.setTo)
 
-        # default to today
-        today_date  = QDate.currentDate()
-        today_year  = today_date.year()
-        today_month = today_date.month()
-        self.calendarWidget().setCurrentPage(today_year, today_month)
+    #def calendarPopup(self) -> bool:
+    #    self.calendarWidget().setSelectedDate(QDate.currentDate())
+    #    return super().calendarPopup()
 
+    #def mousePressEvent(self, event: QMouseEvent) -> None:
+    #    self.calendarWidget().setSelectedDate(QDate.currentDate())
+    #    return super().mousePressEvent(event)
 
     # set date
     def setWatchedDate(self):
@@ -461,11 +462,8 @@ class watchedDateWidget(QDateEdit):
         self.setDate(QDate.fromString("01/01/0001", "dd/MM/yyyy"))
 
     def setTo(self):
-        print('date set to:')
         date_str = self.date().toString("yyyy-MM-dd")
-        
         getMain(self).setUserItem(self.imdb_id, last_watched=date_str)
-
 
 class moviesTableWidget(QTableWidget):
     """
