@@ -61,7 +61,7 @@ def getMain(widget):
         return widget
     return getMain(parent) 
 
-class trekListApp(QWidget):
+class trekListApp(QMainWindow):
     """
     Main TrekList App Window
     """
@@ -95,7 +95,9 @@ class trekListApp(QWidget):
         self.layout = QVBoxLayout()
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(2, 2, 2, 10) # ltrb
-        self.setLayout(self.layout)
+        wdw = QWidget()
+        wdw.setLayout(self.layout)
+        self.setCentralWidget(wdw)
 
         # tab widget
         self.tab_widget = seriesTabsWidget(self)
