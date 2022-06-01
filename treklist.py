@@ -25,13 +25,7 @@ import pandas    as pd
 import os
 import PIL.Image as Image
 import math
-
-# change working directory
-try:                    # bundled path
-   wd = sys._MEIPASS    
-except AttributeError:  # python script
-   wd = os.path.dirname(os.path.realpath(__file__))
-os.chdir(wd)
+import platform
 
 # defaults
 main_win_width       = 1410
@@ -39,7 +33,7 @@ main_win_height      = 800
 series_sidebar_width = 300
 series_tbl_hdrs      = ('season', 'episode', 'title', 'poster', 'released', 'plot', 'runtime')
 series_tbl_hdr_names = ('S',      'E',       'Title', 'Screen', 'Released', 'Plot', 'Runtime')
-series_tbl_widths    = (30,       30,        120,     200,      90,         290,    80)
+series_tbl_widths    = (30,       30,        120,     200,      90,         280,    80)
 series_tbl_row_hgt   = 150
 usr_tbl_hdrs         = ('watched', 'last_watched')
 usr_tbl_names        = ('✓',       'Watched')
@@ -48,6 +42,17 @@ movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'director', 'ru
 movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Director', 'Runtime')
 movies_tbl_widths    = (180,      300,        100,       350,     100,       80)
 movies_tbl_row_hgt   = 450
+
+# change working directory
+try:                    # bundled path
+   wd = sys._MEIPASS    
+except AttributeError:  # python script
+   wd = os.path.dirname(os.path.realpath(__file__))
+os.chdir(wd)
+
+# determine operating system
+on_macos = platform.uname().system.startswith('Darw')
+print(on_macos)
 
 def getMain(widget):
     """
