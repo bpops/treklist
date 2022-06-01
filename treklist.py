@@ -115,11 +115,12 @@ class trekListApp(QMainWindow):
         self.updateInfoBar()
 
         # menu bar contents
-        gpl_act   = QAction("GPL-3.0 License", self)
+        gpl_act   = QAction("License: GPL-3.0", self)
         gpl_act.triggered.connect(self.showGPL)
+        cc_act    = QAction("License: CC BY-NC 4.0", self)
+        cc_act.triggered.connect(self.showCC)
         abt_act   = QAction("More Info", self)
         abt_act.triggered.connect(self.showAbout)
-
 
         # generate menu bar
         if on_macos:
@@ -131,6 +132,7 @@ class trekListApp(QMainWindow):
         # help menu
         help_menu = self.menu_bar.addMenu("Help")
         help_menu.addAction(gpl_act)
+        help_menu.addAction(cc_act)
         help_menu.addAction(abt_act)
     
         self.show();
@@ -145,13 +147,18 @@ class trekListApp(QMainWindow):
         Show the GPL License
         """
         self.gpl_win = gplWindow()
+    
+    def showCC(self):
+        """
+        Show the CC License
+        """
+        self.cc_win = ccWindow()
 
     def showAbout(self):
         """
         Show the About Window
         """
         self.abt_win = aboutWindow()
-
 
     def querySeries(self):
         """
@@ -579,6 +586,25 @@ class gplWindow(QTextBrowser):
         self.insertPlainText(licText)
         self.setWindowTitle("GNU General Public License v3")
         self.resize(580,500)
+        self.show()
+
+        # scroll to top
+        self.verticalScrollBar().setValue(0)
+
+class ccWindow(QTextBrowser):
+    """
+    CC License Window
+    """
+    def __init__(self):
+        super().__init__()
+
+        # read license text and add
+        f = open("lic/cc_by-nc_4.0")
+        licText = f.read()
+        f.close()
+        self.insertPlainText(licText)
+        self.setWindowTitle("Creative Commons License")
+        self.resize(600,500)
         self.show()
 
         # scroll to top
