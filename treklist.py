@@ -10,7 +10,6 @@
 #                   https://github.com/bpops/treklist
 
 # pyqt6 requirements
-from http.client     import PRECONDITION_REQUIRED
 from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QMainWindow
 from PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
 from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
@@ -18,8 +17,9 @@ from PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit
 from PyQt6.QtWidgets import QMenuBar, QMenu, QTextBrowser
 from PyQt6.QtGui     import QPixmap, QFont, QMouseEvent, QAction
 from PyQt6.QtCore    import Qt, QDateTime, QDate
-from datetime        import datetime
 
+from   http.client   import PRECONDITION_REQUIRED
+from   datetime      import datetime
 import sys
 import sqlite3
 import pandas    as pd
