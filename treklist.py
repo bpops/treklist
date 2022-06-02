@@ -11,13 +11,15 @@
 
 from   datetime        import datetime
 from   http.client     import PRECONDITION_REQUIRED
+from re import L
 from   PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QMainWindow
 from   PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
 from   PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
 from   PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit
-from   PyQt6.QtWidgets import QMenuBar, QMenu, QTextBrowser
+from   PyQt6.QtWidgets import QMenuBar, QMenu, QTextBrowser, QFileDialog
 from   PyQt6.QtGui     import QPixmap, QFont, QMouseEvent, QAction
 from   PyQt6.QtCore    import Qt, QDateTime, QDate
+import shutil
 import sys
 import sqlite3
 import pandas          as     pd
@@ -113,8 +115,10 @@ class trekListApp(QMainWindow):
         self.updateInfoBar()
 
         # menu bar contents
-        save_act  = QAction("Save Log", self)
+        save_act  = QAction("Save User Log...", self)
         save_act.triggered.connect(self.saveLog)
+        load_act  = QAction("Load User Log...", self)
+        load_act.triggered.connect(self.loadLog)
         gpl_act   = QAction("License: GPL-3.0", self)
         gpl_act.triggered.connect(self.showGPL)
         cc_act    = QAction("License: CC BY-NC 4.0", self)
@@ -132,6 +136,7 @@ class trekListApp(QMainWindow):
         # file menu
         file_menu = self.menu_bar.addMenu("File")
         file_menu.addAction(save_act)
+        file_menu.addAction(load_act)
 
         # help menu
         help_menu = self.menu_bar.addMenu("Help")
@@ -150,7 +155,17 @@ class trekListApp(QMainWindow):
         """
         Save the User Log to file
         """
-        pass
+        save_pth = QFileDialog.getSaveFileName(self, 'Save User Log')
+        if save_pth[0]:
+            shutil.copyfile(f"{wd}/user.db", save_pth[0])
+
+    def loadLog(self):
+        """
+        Load the User Log from file
+        """
+        load_pth = QFileDialog.getOpenFileName(self, 'Load User Log')
+        if load_pth[0]:
+            shutil.copyfile(load_pth[0], f"{wd}/user.db")
 
     def showGPL(self):
         """
