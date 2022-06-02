@@ -9,22 +9,20 @@
 #
 #                   https://github.com/bpops/treklist
 
-# pyqt6 requirements
-from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QMainWindow
-from PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
-from PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
-from PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit
-from PyQt6.QtWidgets import QMenuBar, QMenu, QTextBrowser
-from PyQt6.QtGui     import QPixmap, QFont, QMouseEvent, QAction
-from PyQt6.QtCore    import Qt, QDateTime, QDate
-
-from   http.client   import PRECONDITION_REQUIRED
-from   datetime      import datetime
+from   datetime        import datetime
+from   http.client     import PRECONDITION_REQUIRED
+from   PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QMainWindow
+from   PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
+from   PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
+from   PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit
+from   PyQt6.QtWidgets import QMenuBar, QMenu, QTextBrowser
+from   PyQt6.QtGui     import QPixmap, QFont, QMouseEvent, QAction
+from   PyQt6.QtCore    import Qt, QDateTime, QDate
 import sys
 import sqlite3
-import pandas    as pd
+import pandas          as     pd
 import os
-import PIL.Image as Image
+import PIL.Image       as     Image
 import math
 import platform
 
@@ -115,6 +113,8 @@ class trekListApp(QMainWindow):
         self.updateInfoBar()
 
         # menu bar contents
+        save_act  = QAction("Save Log", self)
+        save_act.triggered.connect(self.saveLog)
         gpl_act   = QAction("License: GPL-3.0", self)
         gpl_act.triggered.connect(self.showGPL)
         cc_act    = QAction("License: CC BY-NC 4.0", self)
@@ -129,6 +129,10 @@ class trekListApp(QMainWindow):
         else:
             self.menu_bar = self.menuBar()
 
+        # file menu
+        file_menu = self.menu_bar.addMenu("File")
+        file_menu.addAction(save_act)
+
         # help menu
         help_menu = self.menu_bar.addMenu("Help")
         help_menu.addAction(gpl_act)
@@ -141,6 +145,12 @@ class trekListApp(QMainWindow):
         qr = self.frameGeometry()
         cp = self.screen().availableGeometry().center()
         qr.moveCenter(cp)
+
+    def saveLog(self):
+        """
+        Save the User Log to file
+        """
+        pass
 
     def showGPL(self):
         """
