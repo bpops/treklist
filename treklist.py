@@ -277,11 +277,15 @@ class trekListApp(QMainWindow):
         if len(df) > 0: # record exists
             if isinstance(val, int):
                 cmd = f"UPDATE log SET {key} = {int(val)} WHERE imdb_id = '{imdb_id}'"
+            elif val == "NULL":
+                cmd = f"UPDATE log SET {key} = NULL WHERE imdb_id = '{imdb_id}'"
             else:
                 cmd = f"UPDATE log SET {key} = '{val}' WHERE imdb_id = '{imdb_id}'"
         else:           # record does not exist
             if isinstance(val, int):
                 cmd = f"INSERT INTO log (imdb_id, {key}) VALUES('{imdb_id}', {int(val)})"
+            elif val == "NULL":
+                cmd = f"INSERT INTO log (imdb_id, {key}) VALUES('{imdb_id}', NULL)"   
             else:
                 cmd = f"INSERT INTO log (imdb_id, {key}) VALUES('{imdb_id}', '{val}')"   
         self.usr_conn.execute(cmd)
@@ -472,7 +476,7 @@ class seriesTableWidget(QTableWidget):
                 elif hdr == "last_watched":
                     date_widg  = watchedDateWidget(imdb_id)
                     self.setCellWidget(r, c, date_widg)
-                    date_widg.setWatchedDate()
+                    date_widg.loadWatchedDate()
 
         self.verticalHeader().setDefaultSectionSize(series_tbl_row_hgt)
 
@@ -523,12 +527,13 @@ class watchedDateWidget(QWidget): #QDateEdit):
         tdy_btn = QPushButton()
         tdy_btn.setText("Today")
         self.layout().addWidget(tdy_btn, 1, 0, 1, 1)
+        tdy_btn.clicked.connect(self.setToToday)
 
         # clear button
         clr_btn = QPushButton()
         clr_btn.setText("Clear")
         self.layout().addWidget(clr_btn, 1, 1, 1, 1)
-
+        clr_btn.clicked.connect(self.setToNull)
 
     #def calendarPopup(self) -> bool:
     #    self.calendarWidget().setSelectedDate(QDate.currentDate())
@@ -538,19 +543,33 @@ class watchedDateWidget(QWidget): #QDateEdit):
     #    self.calendarWidget().setSelectedDate(QDate.currentDate())
     #    return super().mousePressEvent(event)
 
-    # set date
-    def setWatchedDate(self):
+    # load watched date
+    def loadWatchedDate(self):
         self.date_wgt.blockSignals(True)
         watched_date = getMain(self).getUserItem(self.imdb_id, 'last_watched')
         if watched_date is None:
-            self.setNull()
+            self.loadNull()
         else:
             self.date_wgt.setDate(QDate.fromString(watched_date, "yyyy-MM-dd"))
         self.date_wgt.blockSignals(False)
 
-    def setNull(self):
+    def loadNull(self):
         self.date_wgt.setSpecialValueText(" ")
         self.date_wgt.setDate(QDate.fromString("01/01/0001", "dd/MM/yyyy"))
+
+    # set to Null
+    def setToNull(self):
+        """
+        Clear date value
+        """
+        self.loadNull()
+        getMain(self).setUserItem(self.imdb_id, last_watched="NULL")
+
+    def setToToday(self):
+        """
+        Set date value to today
+        """
+        self.date_wgt.setDate(QDate.currentDate())
 
     def setTo(self):
         date_str = self.date_wgt.date().toString("yyyy-MM-dd")
