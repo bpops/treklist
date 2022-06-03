@@ -17,7 +17,7 @@ from   PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetI
 from   PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
 from   PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit
 from   PyQt6.QtWidgets import QMenuBar, QMenu, QTextBrowser, QFileDialog
-from   PyQt6.QtGui     import QPixmap, QFont, QMouseEvent, QAction
+from   PyQt6.QtGui     import QPixmap, QFont, QMouseEvent, QAction, QGuiApplication
 from   PyQt6.QtCore    import Qt, QDateTime, QDate
 import shutil
 import sys
@@ -71,12 +71,16 @@ class trekListApp(QMainWindow):
     Main TrekList App Window
     """
     
+    #EXIT_CODE_REBOOT = -12345678
+    #singleton: 'trekListApp' = None
+
     def __init__(self):
         super().__init__()
 
+        
         # init UI
         self.resize(main_win_width, main_win_height)
-        self.setWindowTitle('TrekList v0.1')
+        self.setWindowTitle('TrekList')
         #self.centerWindow()
 
         # initialize treklist database
@@ -166,6 +170,7 @@ class trekListApp(QMainWindow):
         load_pth = QFileDialog.getOpenFileName(self, 'Load User Log')
         if load_pth[0]:
             shutil.copyfile(load_pth[0], f"{wd}/user.db")
+            self.restart()
 
     def showGPL(self):
         """
@@ -311,7 +316,12 @@ class trekListApp(QMainWindow):
 
     def resizeEvent(self, event):
         return super().resizeEvent(event)
- 
+
+    #@staticmethod
+    #def restart():
+    #    #QGuiApplication.exit(trekListApp.EXIT_CODE_REBOOT)
+    #    trekListApp.singleton = trekListApp()
+
 class seriesTabsWidget(QWidget):
     """
     Series Tabs Widget
@@ -497,14 +507,20 @@ class watchedDateWidget(QDateEdit):
     def __init__(self, imdb_id):
         super(QDateEdit, self).__init__()
         self.imdb_id = imdb_id
+        layout = QVBoxLayout()
+        self.setLayout(layout)
 
         # settings
-        self.setCalendarPopup(True)
+        #self.setCalendarPopup(True)
         self.setDisplayFormat("yyyy-MM-dd")
 
         # connect to function
         self.dateChanged.connect(self.setTo)
 
+        #tdy_btn = QPushButton()
+        #tdy_btn.setText("Today")
+        #self.layout().addWidget(tdy_btn)
+        
     #def calendarPopup(self) -> bool:
     #    self.calendarWidget().setSelectedDate(QDate.currentDate())
     #    return super().calendarPopup()
@@ -644,21 +660,24 @@ class aboutWindow(QTextBrowser):
 
         # read license text and add
         self.append("\n")
+        self.append("                            TrekList v0.2")
         self.append("                    created for fun by bpops")
         self.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href=\"https://github.com/bpops/treklist\">https://github.com/bpops/treklist</a>")
         self.setWindowTitle("More Info")
-        self.resize(290,100)
+        self.resize(290,120)
         self.setOpenExternalLinks(True)
         self.show()
 
         # scroll to top
         self.verticalScrollBar().setValue(0)
 
-
 def main():
+    #currentExitCode = trekListApp.EXIT_CODE_REBOOT
+
     app = QApplication(sys.argv)
     ex = trekListApp()
     ex.show()
+    #trekListApp.restart()
     sys.exit(app.exec())
 
 if __name__ == '__main__':
