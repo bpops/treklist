@@ -71,13 +71,9 @@ class trekListApp(QMainWindow):
     Main TrekList App Window
     """
     
-    #EXIT_CODE_REBOOT = -12345678
-    #singleton: 'trekListApp' = None
-
     def __init__(self):
         super().__init__()
-
-        
+    
         # init UI
         self.resize(main_win_width, main_win_height)
         self.setWindowTitle('TrekList')
@@ -344,11 +340,6 @@ class trekListApp(QMainWindow):
     def resizeEvent(self, event):
         return super().resizeEvent(event)
 
-    #@staticmethod
-    #def restart():
-    #    #QGuiApplication.exit(trekListApp.EXIT_CODE_REBOOT)
-    #    trekListApp.singleton = trekListApp()
-
 class seriesTabsWidget(QWidget):
     """
     Series Tabs Widget
@@ -527,12 +518,11 @@ class watchedCheckboxWidget(QCheckBox):
     def setTo(self):
         getMain(self).setUserItem(self.imdb_id, watched=self.isChecked())
 
-class watchedDateWidget(QWidget): #QDateEdit):
+class watchedDateWidget(QWidget):
     """
     Watched Date Widget
     """
     def __init__(self, imdb_id):
-        #super(QDateEdit, self).__init__()
         super(QWidget, self).__init__()
         self.imdb_id = imdb_id
         layout = QGridLayout()
@@ -653,8 +643,6 @@ class resizingImageWidget(QLabel):
         
     def setPoster(self, abb, imdb_id):
         self.pix_map = getMain(self).getPoster(abb,imdb_id)
-        #self.showMaximized() # calls resizeEvent()
-        #self.update()
 
     def resizeEvent(self, event):
         pix_map = self.pix_map.scaled(self.size().width(), self.size().height(),
@@ -723,12 +711,10 @@ class aboutWindow(QTextBrowser):
         self.verticalScrollBar().setValue(0)
 
 def main():
-    #currentExitCode = trekListApp.EXIT_CODE_REBOOT
 
     app = QApplication(sys.argv)
     ex = trekListApp()
     ex.show()
-    #trekListApp.restart()
     sys.exit(app.exec())
 
 if __name__ == '__main__':
