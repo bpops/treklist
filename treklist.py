@@ -11,9 +11,9 @@
 
 from   datetime        import datetime
 from   http.client     import PRECONDITION_REQUIRED
-from re import L
+#from re import L
 from   PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QMainWindow, QGridLayout
-from   PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
+from   PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem, QDialog
 from   PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
 from   PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit
 from   PyQt6.QtWidgets import QMenuBar, QMenu, QTextBrowser, QFileDialog
@@ -154,6 +154,29 @@ class trekListApp(QMainWindow):
         qr = self.frameGeometry()
         cp = self.screen().availableGeometry().center()
         qr.moveCenter(cp)
+
+    def restart(self):
+        """
+        Restarts the application
+        """
+
+        # setup modal dialog
+        dlg_wgt = QDialog()
+        ok_btn  = QPushButton("Okay")
+        ok_btn.clicked.connect(dlg_wgt.close)
+        dlg_txt = QLabel()
+        dlg_txt.setText("TrekList will now restart.")
+        layout  = QVBoxLayout()
+        layout.addWidget(dlg_txt)
+        layout.addWidget(ok_btn)
+        dlg_wgt.setLayout(layout)
+
+        # execute the dialog widget
+        dlg_wgt.exec()
+
+        # peform restart
+        python = sys.executable
+        os.execl(python, python, * sys.argv)
 
     def saveLog(self):
         """
