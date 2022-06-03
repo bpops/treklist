@@ -508,7 +508,8 @@ class watchedDateWidget(QWidget): #QDateEdit):
         #super(QDateEdit, self).__init__()
         super(QWidget, self).__init__()
         self.imdb_id = imdb_id
-        layout = QVBoxLayout()
+        layout = QGridLayout()
+        layout.setHorizontalSpacing(1)
         self.setLayout(layout)
 
         # settings
@@ -516,14 +517,19 @@ class watchedDateWidget(QWidget): #QDateEdit):
         self.date_wgt = QDateEdit()
         self.date_wgt.setDisplayFormat("yyyy-MM-dd")
         self.date_wgt.dateChanged.connect(self.setTo)
-        self.layout().addWidget(self.date_wgt)
+        self.layout().addWidget(self.date_wgt, 0, 0, 1, 2)
 
-        # connect to function
-        
-        #tdy_btn = QPushButton()
-        #tdy_btn.setText("Today")
-        #self.layout().addWidget(tdy_btn)
-        
+        # today button
+        tdy_btn = QPushButton()
+        tdy_btn.setText("Today")
+        self.layout().addWidget(tdy_btn, 1, 0, 1, 1)
+
+        # clear button
+        clr_btn = QPushButton()
+        clr_btn.setText("Clear")
+        self.layout().addWidget(clr_btn, 1, 1, 1, 1)
+
+
     #def calendarPopup(self) -> bool:
     #    self.calendarWidget().setSelectedDate(QDate.currentDate())
     #    return super().calendarPopup()
