@@ -11,22 +11,22 @@
 
 from   datetime        import datetime
 from   http.client     import PRECONDITION_REQUIRED
-#from re import L
-from   PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QMainWindow, QGridLayout
-from   PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem, QDialog
-from   PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
-from   PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit
-from   PyQt6.QtWidgets import QMenuBar, QMenu, QTextBrowser, QFileDialog
-from   PyQt6.QtGui     import QPixmap, QFont, QMouseEvent, QAction, QGuiApplication
-from   PyQt6.QtCore    import Qt, QDateTime, QDate
-import shutil
-import sys
-import sqlite3
-import pandas          as     pd
-import os
-import PIL.Image       as     Image
 import math
+import os
+import pandas          as     pd
+import PIL.Image       as     Image
 import platform
+from   PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout
+from   PyQt6.QtWidgets import QMainWindow, QGridLayout, QDialog
+from   PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QTableWidgetItem
+from   PyQt6.QtWidgets import QTabWidget, QTableWidget
+from   PyQt6.QtWidgets import QCheckBox, QPushButton, QDateEdit
+from   PyQt6.QtWidgets import QMenuBar, QTextBrowser, QFileDialog
+from   PyQt6.QtGui     import QPixmap, QFont, QAction
+from   PyQt6.QtCore    import Qt, QDate
+import shutil
+import sqlite3
+import sys
 
 # defaults
 main_win_width       = 1430
