@@ -12,7 +12,7 @@
 from   datetime        import datetime
 from   http.client     import PRECONDITION_REQUIRED
 from re import L
-from   PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QMainWindow
+from   PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QMainWindow, QGridLayout
 from   PyQt6.QtWidgets import QHBoxLayout, QSizePolicy, QSplitter, QTableWidgetItem
 from   PyQt6.QtWidgets import QTabWidget, QTableWidget, QTableWidgetItem, QApplication
 from   PyQt6.QtWidgets import QCheckBox, QPushButton, QCalendarWidget, QDateEdit
@@ -29,7 +29,7 @@ import math
 import platform
 
 # defaults
-main_win_width       = 1410
+main_win_width       = 1430
 main_win_height      = 800
 series_sidebar_width = 300
 series_tbl_hdrs      = ('season', 'episode', 'title', 'poster', 'released', 'plot', 'runtime')
@@ -38,7 +38,7 @@ series_tbl_widths    = (30,       30,        120,     200,      90,         280,
 series_tbl_row_hgt   = 150
 usr_tbl_hdrs         = ('watched', 'last_watched')
 usr_tbl_names        = ('✓',       'Watched')
-usr_tbl_widths       = (30,        110,)
+usr_tbl_widths       = (30,        125,)
 movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'director', 'runtime')
 movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Director', 'Runtime')
 movies_tbl_widths    = (180,      300,        100,       350,     100,       80)
@@ -500,23 +500,26 @@ class watchedCheckboxWidget(QCheckBox):
     def setTo(self):
         getMain(self).setUserItem(self.imdb_id, watched=self.isChecked())
 
-class watchedDateWidget(QDateEdit):
+class watchedDateWidget(QWidget): #QDateEdit):
     """
     Watched Date Widget
     """
     def __init__(self, imdb_id):
-        super(QDateEdit, self).__init__()
+        #super(QDateEdit, self).__init__()
+        super(QWidget, self).__init__()
         self.imdb_id = imdb_id
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         # settings
         #self.setCalendarPopup(True)
-        self.setDisplayFormat("yyyy-MM-dd")
+        self.date_wgt = QDateEdit()
+        self.date_wgt.setDisplayFormat("yyyy-MM-dd")
+        self.date_wgt.dateChanged.connect(self.setTo)
+        self.layout().addWidget(self.date_wgt)
 
         # connect to function
-        self.dateChanged.connect(self.setTo)
-
+        
         #tdy_btn = QPushButton()
         #tdy_btn.setText("Today")
         #self.layout().addWidget(tdy_btn)
@@ -531,20 +534,20 @@ class watchedDateWidget(QDateEdit):
 
     # set date
     def setWatchedDate(self):
-        self.blockSignals(True)
+        self.date_wgt.blockSignals(True)
         watched_date = getMain(self).getUserItem(self.imdb_id, 'last_watched')
         if watched_date is None:
             self.setNull()
         else:
-            self.setDate(QDate.fromString(watched_date, "yyyy-MM-dd"))
-        self.blockSignals(False)
+            self.date_wgt.setDate(QDate.fromString(watched_date, "yyyy-MM-dd"))
+        self.date_wgt.blockSignals(False)
 
     def setNull(self):
-        self.setSpecialValueText(" ")
-        self.setDate(QDate.fromString("01/01/0001", "dd/MM/yyyy"))
+        self.date_wgt.setSpecialValueText(" ")
+        self.date_wgt.setDate(QDate.fromString("01/01/0001", "dd/MM/yyyy"))
 
     def setTo(self):
-        date_str = self.date().toString("yyyy-MM-dd")
+        date_str = self.date_wgt.date().toString("yyyy-MM-dd")
         getMain(self).setUserItem(self.imdb_id, last_watched=date_str)
 
 class moviesTableWidget(QTableWidget):
