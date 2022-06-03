@@ -6,15 +6,14 @@
 #              /_/ /_/ |_/_____/_/ |_/_____/___//____//_/
 #
 #                      a Star Trek episode tracker
-#
 #                   https://github.com/bpops/treklist
+#
 
 from   datetime        import datetime
 from   http.client     import PRECONDITION_REQUIRED
 import math
 import os
 import pandas          as     pd
-import PIL.Image       as     Image
 import platform
 from   PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout
 from   PyQt6.QtWidgets import QMainWindow, QGridLayout, QDialog
@@ -711,7 +710,6 @@ class aboutWindow(QTextBrowser):
         self.verticalScrollBar().setValue(0)
 
 def main():
-
     app = QApplication(sys.argv)
     ex = trekListApp()
     ex.show()
