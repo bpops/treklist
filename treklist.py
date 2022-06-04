@@ -748,7 +748,7 @@ class aboutWindow(QTextBrowser):
 
         # read license text and add
         self.append("\n")
-        self.append("                            TrekList v0.2")
+        self.append("                            TrekList v0.3")
         self.append("                    created for fun by bpops")
         self.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href=\"https://github.com/bpops/treklist\">https://github.com/bpops/treklist</a>")
         self.setWindowTitle("More Info")
