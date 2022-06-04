@@ -27,6 +27,8 @@ from   PyQt6.QtCore    import Qt, QDate, QVariant
 import shutil
 import sqlite3
 import sys
+import yaml
+from   yaml.loader     import SafeLoader
 
 # defaults
 main_win_width       = 1430
@@ -87,6 +89,10 @@ class trekListApp(QMainWindow):
     def __init__(self):
         super().__init__()
     
+        # read in settings
+        with open(f"{wd}settings.yaml") as f:
+            self.settings = yaml.load(f, Loader=SafeLoader)
+
         # init UI
         self.resize(main_win_width, main_win_height)
         self.setWindowTitle('TrekList')
