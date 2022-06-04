@@ -23,7 +23,7 @@ from   PyQt6.QtWidgets import QTabWidget, QTableWidget
 from   PyQt6.QtWidgets import QCheckBox, QPushButton, QDateEdit
 from   PyQt6.QtWidgets import QMenuBar, QTextBrowser, QFileDialog
 from   PyQt6.QtGui     import QPixmap, QFont, QAction
-from   PyQt6.QtCore    import Qt, QDate, QVariant
+from   PyQt6.QtCore    import Qt, QDate
 import shutil
 import sqlite3
 import sys
@@ -53,7 +53,6 @@ except AttributeError:  # python script
    wd = os.path.dirname(os.path.realpath(__file__))
 wd = f"{wd}/"
 os.chdir(wd)
-print(wd)
 
 # determine operating system
 on_macos = platform.uname().system.startswith('Darw')
