@@ -46,11 +46,12 @@ movies_tbl_row_hgt   = 450
 
 # change working directory
 try:                    # bundled path
-   wd = sys._MEIPASS    
+   wd = sys._MEIPASS
 except AttributeError:  # python script
    wd = os.path.dirname(os.path.realpath(__file__))
 wd = f"{wd}/"
 os.chdir(wd)
+print(wd)
 
 # determine operating system
 on_macos = platform.uname().system.startswith('Darw')
@@ -290,6 +291,8 @@ class trekListApp(QMainWindow):
             value = res.values[0]
         else:
             value = def_value
+        if value != value: # correct for possible nans
+            value = False
 
         return value
 
