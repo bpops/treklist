@@ -9,6 +9,7 @@
 #                   https://github.com/bpops/treklist
 #
 
+from   appdirs         import user_data_dir
 from   datetime        import datetime
 from   http.client     import PRECONDITION_REQUIRED
 import math
@@ -48,10 +49,22 @@ try:                    # bundled path
    wd = sys._MEIPASS    
 except AttributeError:  # python script
    wd = os.path.dirname(os.path.realpath(__file__))
+wd = f"{wd}/"
 os.chdir(wd)
 
 # determine operating system
 on_macos = platform.uname().system.startswith('Darw')
+
+# determine data directory - this is where the
+# user sql database will be stored
+data_dir = user_data_dir("TrekList") + "/"
+log_file = data_dir + "user.db"
+
+# make data directory and copy fresh user log
+if not os.path.exists(data_dir):
+    os.makedirs(data_dir)
+if not os.path.exists(log_file):
+    shutil.copyfile(f"{wd}/user.db", log_file)
 
 def getMain(widget):
     """
@@ -76,15 +89,14 @@ class trekListApp(QMainWindow):
         # init UI
         self.resize(main_win_width, main_win_height)
         self.setWindowTitle('TrekList')
-        #self.centerWindow()
 
         # initialize treklist database
-        self.tl_filename = "treklist.db"
+        self.tl_filename = f"{wd}treklist.db"
         self.tl_conn = sqlite3.connect(self.tl_filename)
         self.tl_curs = self.tl_conn.cursor()
 
         # initialize user database
-        self.usr_filename = "user.db"
+        self.usr_filename = log_file
         self.usr_conn = sqlite3.connect(self.usr_filename)
         self.usr_curs = self.usr_conn.cursor()
 
@@ -179,7 +191,7 @@ class trekListApp(QMainWindow):
         """
         save_pth = QFileDialog.getSaveFileName(self, 'Save User Log')
         if save_pth[0]:
-            shutil.copyfile(f"{wd}/user.db", save_pth[0])
+            shutil.copyfile(self.usr_filename, save_pth[0])
 
     def loadLog(self):
         """
@@ -187,7 +199,7 @@ class trekListApp(QMainWindow):
         """
         load_pth = QFileDialog.getOpenFileName(self, 'Load User Log')
         if load_pth[0]:
-            shutil.copyfile(load_pth[0], f"{wd}/user.db")
+            shutil.copyfile(load_pth[0], self.usr_filename)
             self.restart()
 
     def showGPL(self):
