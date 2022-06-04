@@ -23,7 +23,7 @@ from   PyQt6.QtWidgets import QTabWidget, QTableWidget
 from   PyQt6.QtWidgets import QCheckBox, QPushButton, QDateEdit
 from   PyQt6.QtWidgets import QMenuBar, QTextBrowser, QFileDialog
 from   PyQt6.QtGui     import QPixmap, QFont, QAction
-from   PyQt6.QtCore    import Qt, QDate
+from   PyQt6.QtCore    import Qt, QDate, QVariant
 import shutil
 import sqlite3
 import sys
@@ -257,6 +257,9 @@ class trekListApp(QMainWindow):
                     self.n_mins += int(''.join(list(filter(str.isdigit,
                         runtime))))
 
+            # sort by season, episode
+            self.dfs[abb].sort_values(by=['season', 'episode'], inplace=True)
+
     def queryMovies(self):
         """
         Query the Movies SQL Database
@@ -484,11 +487,15 @@ class seriesTableWidget(QTableWidget):
 
             # insert series info
             for c, hdr in enumerate(series_tbl_hdrs):
-                if hdr != "poster":
-                    self.setItem(r, c, QTableWidgetItem(f"{self.df[hdr][r]}"))
-                else:
+                if hdr == "poster":
                     self.setImage(r, c)
-
+                elif hdr in ("season", "episode"):
+                    item = QTableWidgetItem()
+                    item.setData(0, int(self.df[hdr][r]))
+                    self.setItem(r, c, item)
+                else:
+                    self.setItem(r, c, QTableWidgetItem(f"{self.df[hdr][r]}"))
+                    
             # query user info
             imdb_id = self.df["imdb_id"][r]
 
@@ -507,6 +514,10 @@ class seriesTableWidget(QTableWidget):
                     date_widg.loadWatchedDate()
 
         self.verticalHeader().setDefaultSectionSize(series_tbl_row_hgt)
+
+        # sort
+        self.sortByColumn(1, Qt.SortOrder.AscendingOrder)
+        self.sortByColumn(0, Qt.SortOrder.AscendingOrder)
 
     def setImage(self, row, col):
         img_wdgt = resizingImageWidget()
