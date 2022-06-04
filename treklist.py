@@ -36,9 +36,9 @@ series_tbl_hdrs      = ('season', 'episode', 'title', 'poster', 'released', 'plo
 series_tbl_hdr_names = ('S',      'E',       'Title', 'Screen', 'Released', 'Plot', 'Runtime')
 series_tbl_widths    = (30,       30,        120,     200,      90,         280,    80)
 series_tbl_row_hgt   = 150
-usr_tbl_hdrs         = ('watched', 'last_watched')
-usr_tbl_names        = ('✓',       'Watched')
-usr_tbl_widths       = (30,        125,)
+usr_tbl_hdrs         = ('watched', 'last_watched',)# 'rating')
+usr_tbl_names        = ('✓',       'Watched',)#      'Rate')
+usr_tbl_widths       = (30,        125,      )#      50)
 movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'director', 'runtime')
 movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Director', 'Runtime')
 movies_tbl_widths    = (180,      300,        100,       350,     100,       80)
@@ -629,9 +629,9 @@ class moviesTableWidget(QTableWidget):
         self.df_hdrs = self.df.keys().values
         
         # set up columns/headers
-        self.setColumnCount(len(movies_tbl_hdrs))
-        self.setHorizontalHeaderLabels(movies_tbl_hdr_names)
-        for c, hdr_width in enumerate(movies_tbl_widths):
+        self.setColumnCount(len(movies_tbl_hdrs)+len(usr_tbl_hdrs))
+        self.setHorizontalHeaderLabels(movies_tbl_hdr_names + usr_tbl_names)
+        for c, hdr_width in enumerate(movies_tbl_widths + usr_tbl_widths):
             self.setColumnWidth(c, hdr_width)
         font = QFont()
         font.setBold(True)
@@ -650,6 +650,24 @@ class moviesTableWidget(QTableWidget):
                         self.setItem(r, c, QTableWidgetItem(f"{self.df[hdr][r]}"))
                 else:
                     self.setImage(r, c)
+
+                        # query user info
+            imdb_id = self.df["imdb_id"][r]
+
+            # insert user info
+            for c, hdr in enumerate(usr_tbl_hdrs):
+                c += len(movies_tbl_hdrs)
+
+                # watched checckbox
+                if hdr == "watched":
+                    checkbox = watchedCheckboxWidget(imdb_id)
+                    self.setCellWidget(r, c, checkbox)
+                    checkbox.setCheckedState()
+                elif hdr == "last_watched":
+                    date_widg  = watchedDateWidget(imdb_id)
+                    self.setCellWidget(r, c, date_widg)
+                    date_widg.loadWatchedDate()
+
         self.verticalHeader().setDefaultSectionSize(movies_tbl_row_hgt)
 
     def setImage(self, row, col):
