@@ -4,6 +4,10 @@ TrekList is an application that expands on what I had already made for my Trekki
 
 ![TrekList Screenshot](./imgs/screenshot.png)
 
+## Use
+
+Due to certificate signing issues, it may be necessary for you to disable Gatekeeper. To do this, run `sudo spctl --master-disable` in a terminal. Alternatively, you can also just enable this single app by running `xattr -cr treklist.app`.
+
 ## Development
 
 You will need to [generate an OMDb API key](https://www.omdbapi.com/apikey.aspx). Place the key in a text file called `api_key` in the repo's base directory. TrekList is built with python 3.9 and sqlite.
