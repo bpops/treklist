@@ -3,4 +3,5 @@ omdb==0.10.1
 pandas==1.4.2
 Pillow==9.1.1
 PyQt6==6.3.0
+pyinstaller==5.1
 requests==2.27.1
