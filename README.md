@@ -6,7 +6,7 @@ TrekList is an application that expands on what I had already made for my Trekki
 
 ## Use
 
-Due to certificate signing issues, it may be necessary for you to disable Gatekeeper. To do this, run `sudo spctl --master-disable` in a terminal. Alternatively, you can also just enable this single app by running `xattr -cr treklist.app`.
+Due to certificate signing issues, please enable this single app by running `sudo xattr -r -d com.apple.quarantine /Applications/TrekList.app`.
 
 ## Development
 
