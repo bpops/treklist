@@ -44,7 +44,7 @@ usr_tbl_widths       = (30,        125,      )#      50)
 movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'director', 'runtime')
 movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Director', 'Runtime')
 movies_tbl_widths    = (180,      300,        100,       350,     100,       80)
-movies_tbl_row_hgt   = 450
+movies_tbl_row_hgt   = 400
 
 # change working directory
 try:                    # bundled path
@@ -112,6 +112,9 @@ class trekListApp(QMainWindow):
         self.queryEpisodes()
         self.queryMovies()
         self.queryUserLog()
+
+        # read settings
+        self.readSettings()
     
         # set up main vertical layout
         self.layout = QVBoxLayout()
@@ -225,6 +228,13 @@ class trekListApp(QMainWindow):
         Show the About Window
         """
         self.abt_win = aboutWindow()
+
+    def readSettings(self):
+        """
+        Read the YAML settings file
+        """
+        with open(f"{wd}settings.yaml") as f:
+            self.settings = yaml.load(f, Loader=SafeLoader)
 
     def querySeries(self):
         """
