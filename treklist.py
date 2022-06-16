@@ -61,12 +61,15 @@ on_macos = platform.uname().system.startswith('Darw')
 # user sql database will be stored
 data_dir = user_data_dir("TrekList") + "/"
 log_file = data_dir + "user.db"
+set_file = data_dir + "settings.yaml"
 
 # make data directory and copy fresh user log
 if not os.path.exists(data_dir):
     os.makedirs(data_dir)
 if not os.path.exists(log_file):
     shutil.copyfile(f"{wd}/user.db", log_file)
+if not os.path.exists(set_file):
+    shutil.copyfile(f"{wd}/settings.yaml", set_file)
 
 def getMain(widget):
     """
