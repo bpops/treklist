@@ -38,9 +38,9 @@ series_tbl_hdrs      = ('season', 'episode', 'title', 'poster', 'released', 'plo
 series_tbl_hdr_names = ('S',      'E',       'Title', 'Screen', 'Released', 'Plot', 'Runtime')
 series_tbl_widths    = (30,       30,        120,     200,      90,         280,    80)
 series_tbl_row_hgt   = 150
-usr_tbl_hdrs         = ('watched', 'last_watched',)# 'rating')
-usr_tbl_names        = ('✓',       'Watched',)#      'Rate')
-usr_tbl_widths       = (30,        125,      )#      50)
+usr_tbl_hdrs         = ('watched', 'last_watched')#, 'rating')
+usr_tbl_names        = ('✓',       'Watched')#,      'Rate')
+usr_tbl_widths       = (30,        125)#,            50)
 movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'director', 'runtime')
 movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Director', 'Runtime')
 movies_tbl_widths    = (180,      300,        100,       350,     100,       80)
@@ -91,10 +91,6 @@ class trekListApp(QMainWindow):
     def __init__(self):
         super().__init__()
     
-        # read in settings
-        with open(f"{wd}settings.yaml") as f:
-            self.settings = yaml.load(f, Loader=SafeLoader)
-
         # init UI
         self.resize(main_win_width, main_win_height)
         self.setWindowTitle('TrekList')
@@ -234,10 +230,10 @@ class trekListApp(QMainWindow):
 
     def readSettings(self):
         """
-        Read the YAML settings file
+        Read the settings file
         """
-        with open(f"{wd}settings.yaml") as f:
-            self.settings = yaml.load(f, Loader=SafeLoader)
+        with open("settings.yaml") as f:
+            self.settings = yaml.load(f, Loader=SafeLoader)    
 
     def querySeries(self):
         """

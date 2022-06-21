@@ -2,4 +2,21 @@
 # Settings File
 ---
 startup_window: True
-...
+main_window:
+    width:  1430
+    height: 800
+series:
+    sidebar_width: 300
+    hdrs:    ['season', 'episode', 'title', 'poster', 'released', 'plot', 'runtime']
+    names:   ['S',      'E',       'Title', 'Screen', 'Released', 'Plot', 'Runtime']
+    widths:  [30,       30,        120,     200,      90,         280,    80]
+    row_hgt: 150
+movie:
+    hdrs:    ['title',  'poster',  'released', 'plot', 'director', 'runtime']
+    names:   ['Title',  'Poster',  'Released', 'Plot', 'Director', 'Runtime']
+    widths:  [180,      300,        100,       350,     100,       80]
+    row_hgt: 400
+user:
+    hdrs:    ['watched', 'last_watched']
+    names:   ['✓',       'Watched']
+    widths:  [30, 125]
