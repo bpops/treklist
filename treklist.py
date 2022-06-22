@@ -45,7 +45,7 @@ on_macos = platform.uname().system.startswith('Darw')
 # user sql database will be stored
 data_dir = user_data_dir("TrekList") + "/"
 log_file = data_dir + "user.db"
-set_file = data_dir + "settings.yaml"
+set_file = wd       + "settings.yaml"
 
 # make data directory and copy fresh user log
 if not os.path.exists(data_dir):
@@ -217,7 +217,7 @@ class trekListApp(QMainWindow):
         """
         Read the settings file
         """
-        with open("settings.yaml") as f:
+        with open(set_file) as f:
             self.set = yaml.load(f, Loader=SafeLoader)    
 
     def querySeries(self):
