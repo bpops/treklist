@@ -30,22 +30,6 @@ import sys
 import yaml
 from   yaml.loader     import SafeLoader
 
-# defaults
-#main_win_width       = 1430
-#main_win_height      = 800
-#series_sidebar_width = 300
-#series_tbl_hdrs      = ('season', 'episode', 'title', 'poster', 'released', 'plot', 'runtime')
-#series_tbl_hdr_names = ('S',      'E',       'Title', 'Screen', 'Released', 'Plot', 'Runtime')
-#series_tbl_widths    = (30,       30,        120,     200,      90,         280,    80)
-#series_tbl_row_hgt   = 150
-usr_tbl_hdrs         = ('watched', 'last_watched')#, 'rating')
-usr_tbl_names        = ('✓',       'Watched')#,      'Rate')
-usr_tbl_widths       = (30,        125)#,            50)
-movies_tbl_hdrs      = ('title',  'poster',  'released', 'plot', 'director', 'runtime')
-movies_tbl_hdr_names = ('Title',  'Poster',  'Released', 'Plot', 'Director', 'Runtime')
-movies_tbl_widths    = (180,      300,        100,       350,     100,       80)
-movies_tbl_row_hgt   = 400
-
 # change working directory
 try:                    # bundled path
    wd = sys._MEIPASS
@@ -516,7 +500,7 @@ class seriesTableWidget(QTableWidget):
             imdb_id = self.df["imdb_id"][r]
 
             # insert user info
-            for c, hdr in enumerate(usr_tbl_hdrs):
+            for c, hdr in enumerate(getMain(self).set['user']['hdrs']):
                 c += len(getMain(self).set['series']['hdrs'])
 
                 # watched checckbox
@@ -645,9 +629,9 @@ class moviesTableWidget(QTableWidget):
         self.df_hdrs = self.df.keys().values
         
         # set up columns/headers
-        self.setColumnCount(len(movies_tbl_hdrs)+len(usr_tbl_hdrs))
-        self.setHorizontalHeaderLabels(movies_tbl_hdr_names + usr_tbl_names)
-        for c, hdr_width in enumerate(movies_tbl_widths + usr_tbl_widths):
+        self.setColumnCount(len(getMain(self).set['movies']['hdrs'])+len(getMain(self).set['user']['hdrs']))
+        self.setHorizontalHeaderLabels(getMain(self).set['movies']['names'] + getMain(self).set['user']['names'])
+        for c, hdr_width in enumerate(getMain(self).set['movies']['widths'] + getMain(self).set['user']['widths']):
             self.setColumnWidth(c, hdr_width)
         font = QFont()
         font.setBold(True)
@@ -656,7 +640,7 @@ class moviesTableWidget(QTableWidget):
         # append each row from series dataframes
         for r, row in enumerate(self.df.iterrows()):
             self.insertRow(r)
-            for c, hdr in enumerate(movies_tbl_hdrs):
+            for c, hdr in enumerate(getMain(self).set['movies']['hdrs']):
                 # datetime_object = datetime.strptime('Jun 1 2005  1:33PM', '%b %d %Y %I:%M%p')
                 if hdr != "poster":
                     if hdr == "released":
@@ -671,8 +655,8 @@ class moviesTableWidget(QTableWidget):
             imdb_id = self.df["imdb_id"][r]
 
             # insert user info
-            for c, hdr in enumerate(usr_tbl_hdrs):
-                c += len(movies_tbl_hdrs)
+            for c, hdr in enumerate(getMain(self).set['user']['hdrs']):
+                c += len(getMain(self).set['movies']['hdrs'])
 
                 # watched checckbox
                 if hdr == "watched":
@@ -684,7 +668,7 @@ class moviesTableWidget(QTableWidget):
                     self.setCellWidget(r, c, date_widg)
                     date_widg.loadWatchedDate()
 
-        self.verticalHeader().setDefaultSectionSize(movies_tbl_row_hgt)
+        self.verticalHeader().setDefaultSectionSize(getMain(self).set['movies']['row_hgt'])
 
     def setImage(self, row, col):
         img_wdgt = resizingImageWidget()
