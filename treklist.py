@@ -31,13 +31,13 @@ import yaml
 from   yaml.loader     import SafeLoader
 
 # defaults
-main_win_width       = 1430
-main_win_height      = 800
-series_sidebar_width = 300
-series_tbl_hdrs      = ('season', 'episode', 'title', 'poster', 'released', 'plot', 'runtime')
-series_tbl_hdr_names = ('S',      'E',       'Title', 'Screen', 'Released', 'Plot', 'Runtime')
-series_tbl_widths    = (30,       30,        120,     200,      90,         280,    80)
-series_tbl_row_hgt   = 150
+#main_win_width       = 1430
+#main_win_height      = 800
+#series_sidebar_width = 300
+#series_tbl_hdrs      = ('season', 'episode', 'title', 'poster', 'released', 'plot', 'runtime')
+#series_tbl_hdr_names = ('S',      'E',       'Title', 'Screen', 'Released', 'Plot', 'Runtime')
+#series_tbl_widths    = (30,       30,        120,     200,      90,         280,    80)
+#series_tbl_row_hgt   = 150
 usr_tbl_hdrs         = ('watched', 'last_watched')#, 'rating')
 usr_tbl_names        = ('✓',       'Watched')#,      'Rate')
 usr_tbl_widths       = (30,        125)#,            50)
@@ -90,9 +90,13 @@ class trekListApp(QMainWindow):
     
     def __init__(self):
         super().__init__()
-    
+
+        # read settings
+        self.readSettings()
+
         # init UI
-        self.resize(main_win_width, main_win_height)
+        self.resize(self.set['main_window']['width'],
+                    self.set['main_window']['height'])
         self.setWindowTitle('TrekList')
 
         # initialize treklist database
@@ -111,9 +115,6 @@ class trekListApp(QMainWindow):
         self.queryEpisodes()
         self.queryMovies()
         self.queryUserLog()
-
-        # read settings
-        self.readSettings()
     
         # set up main vertical layout
         self.layout = QVBoxLayout()
@@ -233,7 +234,7 @@ class trekListApp(QMainWindow):
         Read the settings file
         """
         with open("settings.yaml") as f:
-            self.settings = yaml.load(f, Loader=SafeLoader)    
+            self.set = yaml.load(f, Loader=SafeLoader)    
 
     def querySeries(self):
         """
@@ -434,13 +435,14 @@ class seriesSideBarWidget(QWidget):
         # initialize layout
         self.abb     = abb
         self.imdb_id = imdb_id
-        self.setFixedWidth(series_sidebar_width)
         self.layout  = QVBoxLayout()
         self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.layout.setContentsMargins(0, 0, 11, 11)
         self.setLayout(self.layout)
 
     def populate(self):
+
+        self.setFixedWidth(getMain(self).set['series']['sidebar_width'])
 
         # add series title
         df = getMain(self).dfs["series"]
@@ -487,9 +489,9 @@ class seriesTableWidget(QTableWidget):
         self.df_hdrs = self.df.keys().values
         
         # set up columns/headers
-        self.setColumnCount(len(series_tbl_hdrs) + len(usr_tbl_hdrs))
-        self.setHorizontalHeaderLabels(series_tbl_hdr_names + usr_tbl_names)
-        for c, hdr_width in enumerate(series_tbl_widths + usr_tbl_widths):
+        self.setColumnCount(len(getMain(self).set['series']['hdrs']) + len(getMain(self).set['user']['hdrs']))
+        self.setHorizontalHeaderLabels(getMain(self).set['series']['names'] + getMain(self).set['user']['names'])
+        for c, hdr_width in enumerate(getMain(self).set['series']['widths'] + getMain(self).set['user']['widths']):
             self.setColumnWidth(c, hdr_width)
         font = QFont()
         font.setBold(True)
@@ -500,7 +502,7 @@ class seriesTableWidget(QTableWidget):
             self.insertRow(r)
 
             # insert series info
-            for c, hdr in enumerate(series_tbl_hdrs):
+            for c, hdr in enumerate(getMain(self).set['series']['hdrs']):
                 if hdr == "poster":
                     self.setImage(r, c)
                 elif hdr in ("season", "episode"):
@@ -515,7 +517,7 @@ class seriesTableWidget(QTableWidget):
 
             # insert user info
             for c, hdr in enumerate(usr_tbl_hdrs):
-                c += len(series_tbl_hdrs)
+                c += len(getMain(self).set['series']['hdrs'])
 
                 # watched checckbox
                 if hdr == "watched":
@@ -527,7 +529,7 @@ class seriesTableWidget(QTableWidget):
                     self.setCellWidget(r, c, date_widg)
                     date_widg.loadWatchedDate()
 
-        self.verticalHeader().setDefaultSectionSize(series_tbl_row_hgt)
+        self.verticalHeader().setDefaultSectionSize(getMain(self).set['series']['row_hgt'])
 
         # sort
         self.sortByColumn(1, Qt.SortOrder.AscendingOrder)
