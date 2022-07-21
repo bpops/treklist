@@ -1,4 +1,4 @@
-# timeslide macOS bundler
+# treklist macOS bundler
 
 # build using pyinstaller
 source ./venv/bin/activate
